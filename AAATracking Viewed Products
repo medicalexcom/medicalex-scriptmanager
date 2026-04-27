@@ -1,0 +1,266 @@
+<script>
+/*!
+ * Recently Viewed — Products-Only Collector with PID keys + ClearAll Cooloff (ES5 v4.7)
+ * - Keys by PID when available to prevent cross-overwrites
+ * - Saves ONLY products; ignores categories/brands/search/etc.
+ * - Pauses saves briefly after "Clear All" so nothing reappears immediately
+ */
+(function(){
+  'use strict';
+  if (window.__RV_COLLECTOR_INIT__) return; window.__RV_COLLECTOR_INIT__ = true;
+
+  /* -------- Polyfill: CustomEvent -------- */
+  (function(){
+    if (typeof window.CustomEvent === "function") return;
+    function CustomEvent(event, params){
+      params = params || { bubbles:false, cancelable:false, detail:null };
+      var evt = document.createEvent("CustomEvent");
+      evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+      return evt;
+    }
+    CustomEvent.prototype = window.Event.prototype;
+    window.CustomEvent = CustomEvent;
+  })();
+
+  var STORAGE_KEY       = "recentlyViewedFull";
+  var CLEAR_FLAG_KEY    = "recentlyViewedClearedAt";
+  var SAVE_PAUSE_MS     = 8000; // pause saves this long after Clear All
+  var MAX_ITEMS         = 24;
+
+  function now(){ return (new Date()).getTime(); }
+  function wasJustCleared(){
+    try{
+      var t = parseInt(localStorage.getItem(CLEAR_FLAG_KEY) || "0", 10);
+      return t && (now() - t) < SAVE_PAUSE_MS;
+    }catch(_){ return false; }
+  }
+
+  function jsonParseSafe(t){ try{ return JSON.parse(t); }catch(_){ return null; } }
+  function load(){
+    var arr = jsonParseSafe(localStorage.getItem(STORAGE_KEY)) || [];
+    return (arr && typeof arr.length === "number") ? arr : [];
+  }
+  function setViewed(arr){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+    catch(e){
+      try{
+        var keep = Math.max(8, Math.ceil(MAX_ITEMS*0.6));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr.slice(0, keep)));
+      }catch(_){}
+    }
+    try{ window.dispatchEvent(new CustomEvent("rvp:updated")); }catch(_){}
+  }
+  function normalizePath(pathname){
+    try{
+      var p = pathname || location.pathname || "/";
+      var q = p.indexOf("?"); if (q !== -1) p = p.substring(0,q);
+      if (p.length > 1 && p.charAt(p.length-1) === "/") p = p.substring(0,p.length-1);
+      return p;
+    }catch(_){ return "/"; }
+  }
+
+  /* -------- URL disallow (non-products) -------- */
+  function isDisallowedPath(path){
+    if (!path || path === "/") return true;
+    var bad = [
+      "/recently-viewed", "/categories/", "/category/", "/brands/", "/brand/",
+      "/search.php", "/compare", "/cart.php", "/login.php", "/account.php",
+      "/page/", "/pages/"
+    ];
+    for (var i=0;i<bad.length;i++){ if (path.indexOf(bad[i]) === 0) return true; }
+    if (/\.(jpe?g|png|webp|gif|svg|pdf|zip|csv)$/i.test(path)) return true;
+    return false;
+  }
+
+  /* -------- PID helpers -------- */
+  function pidFromNode(node){
+    if (!node || !node.getAttribute) return "";
+    var pid = node.getAttribute("data-entity-id") || node.getAttribute("data-product-id") || "";
+    if (!pid && node.querySelector){
+      var n = node.querySelector("[data-entity-id],[data-product-id]");
+      if (n) pid = n.getAttribute("data-entity-id") || n.getAttribute("data-product-id") || "";
+    }
+    pid = (pid || "").replace(/[^\d]/g, "");
+    return pid ? ("pid-" + pid) : "";
+  }
+  function pidFromPDP(){
+    var root = document.querySelector(".productView") || document.querySelector("article.productView");
+    if (root){
+      var pid = pidFromNode(root);
+      if (pid) return pid;
+    }
+    var any = document.querySelector("[data-entity-id],[data-product-id]");
+    if (any){
+      var p2 = pidFromNode(any);
+      if (p2) return p2;
+    }
+    return "";
+  }
+
+  /* -------- Save/merge by ID -------- */
+  function save(entry){
+    if (!entry || wasJustCleared()) return; // <- pause after Clear All
+    var id = entry.id; if (!id) return;
+
+    var arr = load();
+    var out = [], found = false, changed = false;
+
+    for (var i=0;i<arr.length;i++){
+      var p = arr[i]; if (!p || !p.id) continue;
+      if (p.id === id){
+        found = true;
+        var merged = {
+          id: id,
+          url: entry.url || p.url || id,
+          name: entry.name || p.name || "",
+          image: entry.image || p.image || "",
+          price: entry.price || p.price || ""
+        };
+        changed = changed || (merged.url!==p.url || merged.name!==p.name || merged.image!==p.image || merged.price!==p.price);
+        out.push(merged);
+      } else {
+        if (!isDisallowedPath(p.id)) out.push(p); else changed = true;
+      }
+    }
+    if (!found){
+      out.unshift({
+        id: id,
+        url: entry.url || id,
+        name: entry.name || "",
+        image: entry.image || "",
+        price: entry.price || ""
+      });
+      changed = true;
+    }
+    if (out.length > MAX_ITEMS){ out = out.slice(0, MAX_ITEMS); changed = true; }
+    if (changed) setViewed(out);
+  }
+
+  /* -------- Product signals -------- */
+  function looksLikeProductTile(root){
+    if (!root || !root.querySelector) return false;
+    if (root.hasAttribute && (root.hasAttribute("data-entity-id") || root.hasAttribute("data-product-id"))) return true;
+    if (root.querySelector("[data-entity-id],[data-product-id]")) return true;
+    if (root.querySelector('form[action*="cart.php"][method="post"]')) return true;
+    if (root.querySelector('[data-button-type="add-cart"], [data-cart-item-add], button[name="add"]')) return true;
+    if (root.querySelector('.price, .price-section, [data-test="product-price"], .price--withoutTax, .price--withTax')) return true;
+    return false;
+  }
+
+  function extractFromTile(a){
+    var node = a, depth = 0, maxDepth = 4;
+    var name="", imgSrc="", price="", pid="", isProduct=false;
+    while (node && depth < maxDepth){
+      if (node.querySelector){
+        if (!isProduct) isProduct = looksLikeProductTile(node);
+        if (!pid) pid = pidFromNode(node);
+        var titleNode = node.querySelector('.card-title a, .card-title, .product-title a, .product-title, h3 a, h4 a');
+        var img = node.querySelector('img');
+        if (titleNode && titleNode.textContent){ name = titleNode.textContent.replace(/\s+/g,' ').trim(); }
+        if (!name){
+          var al = a.getAttribute('aria-label') || a.title || a.textContent || "";
+          name = al ? al.replace(/\s+/g,' ').trim() : "";
+        }
+        if (img){ imgSrc = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-image') || ""; }
+        var priceEl = node.querySelector('.price, .price-section, [data-test="product-price"], .price--withoutTax, .price--withTax');
+        if (priceEl && priceEl.textContent){ price = priceEl.textContent.replace(/\s+/g,' ').trim(); }
+        if (isProduct || pid || name || imgSrc || price) break;
+      }
+      node = node.parentNode; depth++;
+    }
+    return { name:name, image:imgSrc, price:price, pid:pid, isProduct:isProduct };
+  }
+
+  /* -------- Anchor detection (ignore renderer controls) -------- */
+  function findAnchorFromEvent(ev){
+    var t = ev.target || ev.srcElement;
+    if (!t) return null;
+    if (t.closest && t.closest('[data-rvp-ignore]')) return null;
+    if (t.closest){
+      var found = t.closest('a[href]');
+      if (found) return found;
+    }
+    while (t && t.tagName){
+      if (String(t.tagName).toLowerCase() === "a" && t.href) return t;
+      t = t.parentNode;
+    }
+    return null;
+  }
+
+  /* -------- Pre-save on clicks (with ClearAll pause) -------- */
+  function preSaveFromAnchor(a){
+    try{
+      if (!a || !a.href || wasJustCleared()) return; // <- pause after Clear All
+      var rawHref = a.getAttribute("href") || "";
+      if (rawHref.charAt(0) === "#" || rawHref.indexOf("javascript:") === 0) return;
+
+      var u; try { u = new URL(a.href, location.origin); } catch(_){ return; }
+      if (u.origin !== location.origin) return;
+
+      var path = normalizePath(u.pathname);
+      if (isDisallowedPath(path)) return;
+
+      var tile = extractFromTile(a);
+      if (!tile.isProduct) return;
+
+      var id = tile.pid || path;
+      var arr = load();
+      for (var i=0;i<arr.length;i++){ if (arr[i] && arr[i].id === id) return; }
+
+      save({ id: id, url: path, name: tile.name || " ", image: tile.image || "", price: tile.price || "" });
+    }catch(_){}
+  }
+
+  document.addEventListener('pointerdown', function(e){ var a=findAnchorFromEvent(e); if (a) preSaveFromAnchor(a); }, true);
+  document.addEventListener('auxclick',    function(e){ var a=findAnchorFromEvent(e); if (a) preSaveFromAnchor(a); }, true);
+  document.addEventListener('click',       function(e){ var a=findAnchorFromEvent(e); if (a) preSaveFromAnchor(a); }, true);
+  document.addEventListener('keydown',     function(e){ if (e && (e.key==='Enter' || e.key===' ')){ var a=findAnchorFromEvent(e); if (a) preSaveFromAnchor(a); }}, true);
+
+  /* -------- PDP upgrade (also respects ClearAll pause) -------- */
+  function readPriceFromDOM(){
+    var sels = [".price--withoutTax", ".price--withTax", "[data-test='product-price']", ".price"];
+    for (var i = 0; i < sels.length; i++){
+      var el = document.querySelector(sels[i]);
+      if (el && el.textcontent && el.textContent.trim()) return el.textContent.trim();
+      if (el && el.textContent && el.textContent.trim()) return el.textContent.trim();
+    }
+    var meta = document.querySelector('meta[property="product:price:amount"]');
+    return (meta && meta.content) ? meta.content : "";
+  }
+  function collectPDP(){
+    if (wasJustCleared()) return null; // <- pause after Clear All
+    var isPDP = !!(document.querySelector('.productView') || document.querySelector('h1.productView-title'));
+    if (!isPDP) return null;
+
+    var pid = pidFromPDP();
+    var path = normalizePath(location.pathname);
+
+    var nameEl = document.querySelector('h1.productView-title');
+    var imgEl  = document.querySelector('.productView-imageCarousel-main-item img, .productView-img-container img, .productView-image img');
+
+    var name  = nameEl && nameEl.textContent ? nameEl.textContent.trim() : "";
+    var image = imgEl ? (imgEl.currentSrc || imgEl.getAttribute('src') || "") : "";
+    var price = readPriceFromDOM();
+
+    return { id: pid || path, url: path, name: name, image: image, price: price };
+  }
+  function upgradeNow(){ var d = collectPDP(); if (d && d.id) save(d); }
+
+  document.addEventListener('DOMContentLoaded', upgradeNow);
+  window.addEventListener('pageshow', upgradeNow);
+  if (typeof MutationObserver === "function"){
+    var root = document.querySelector('.productView') || document.querySelector('main') || document.body;
+    if (root){
+      try{
+        var mo = new MutationObserver(function(){ upgradeNow(); });
+        mo.observe(root, { childList:true, subtree:true, characterData:true });
+      }catch(_){}
+    }
+  }
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') upgradeNow(); });
+  window.addEventListener('beforeunload', upgradeNow);
+
+  // Public API for manual refresh if needed
+  window.SaveRecentlyViewed = { refresh: upgradeNow };
+})();
+</script>
