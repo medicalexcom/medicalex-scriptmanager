@@ -1,0 +1,943 @@
+<script>
+/**
+ * MedicalEx — Mega Menu v3
+ * Script Manager: Footer, All Pages, Once per page
+ *
+ * What's new in v3:
+ *  - Color-coded icon containers per condition (each item has its own accent)
+ *  - Better, more representative icons (brain, accessibility, droplets, flask, etc.)
+ *  - Larger icons (16×16 in 34×34 containers) for more visual weight
+ *  - Refined stroke weight (1.75) for a more premium, modern look
+ *  - Icon brightness boost on hover (filter-based, works with any color)
+ */
+(function () {
+  'use strict';
+
+  /* ── Hex → rgba helper ─────────────────────────────────────────────── */
+  function rgba(hex, a) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  /* ── 1. RIGHT PANEL CONFIG ─────────────────────────────────────────────
+     Each condition item now has a `color` field — used for icon bg + stroke.
+     Colors are chosen to be clearly distinct and medically intuitive.
+  ───────────────────────────────────────────────────────────────────────── */
+  const RIGHT_PANELS = [
+    {
+      match: ['mobility', 'walker', 'wheelchair'],
+      type: 'condition',
+      label: 'Shop by Condition',
+      items: [
+        { icon: 'bone',        color: '#4AE0A0', title: 'Hip Replacement', sub: 'Post-surgery recovery',   href: '/walkers/' },
+        { icon: 'brain',       color: '#60A5FA', title: "Parkinson's",     sub: 'Balance & movement',      href: '/mobility-aids/' },
+        { icon: 'heartpulse',  color: '#F87171', title: 'Stroke Recovery', sub: 'Mobility & rehab aids',   href: '/patient-transfer-boards/' },
+        { icon: 'access',      color: '#A78BFA', title: 'General Aging',   sub: 'Senior independence',     href: '/daily-living-aids/' },
+      ]
+    },
+    {
+      match: ['wound'],
+      type: 'condition',
+      label: 'Shop by Type',
+      items: [
+        { icon: 'bandage',     color: '#F87171', title: 'Advanced Wound Care', sub: 'Specialized dressings',     href: '/advanced-wound-care/' },
+        { icon: 'layers',      color: '#FB923C', title: 'Wound Dressings',     sub: 'Gauze, foam & film',        href: '/wound-dressings/' },
+        { icon: 'spray',       color: '#60A5FA', title: 'Wound Care Prep',     sub: 'Cleansers & antiseptics',   href: '/wound-care-prep/' },
+        { icon: 'cross',       color: '#4AE0A0', title: 'First Aid',           sub: 'Bandages & emergency kits', href: '/first-aid/' },
+      ]
+    },
+    {
+      match: ['diabet'],
+      type: 'condition',
+      label: 'Shop by Type',
+      items: [
+        { icon: 'syringe',     color: '#60A5FA', title: 'Type 1 Diabetes',     sub: 'Insulin-dependent',         href: '/glucose-monitoring-devices/' },
+        { icon: 'gauge',       color: '#4AE0A0', title: 'Type 2 Diabetes',     sub: 'Monitoring & management',   href: '/blood-glucose-testing/' },
+        { icon: 'footprints',  color: '#FBBF24', title: 'Diabetic Neuropathy', sub: 'Foot & nerve care',         href: '/diabetic-foot-care/' },
+        { icon: 'trenddown',   color: '#F87171', title: 'Pre-Diabetes',        sub: 'Preventive monitoring',     href: '/glucose-monitoring-devices/' },
+      ]
+    },
+    {
+      match: ['diagnostic'],
+      type: 'product',
+      label: 'Top Pick',
+      badge: 'Best Seller',
+      name: 'Roscoe OTC Fingertip Pulse Oximeter',
+      rating: '5',
+      reviews: '24',
+      price: '$49.99',
+      was: '$64.99',
+      url: '/roscoe-otc-fingertip-pulse-oximeter/',
+      img: 'https://cdn11.bigcommerce.com/s-m2vfaq93gk/images/stencil/608x608/products/2565/7119/POX-ROS__84801.1758527623.jpg?c=1',
+    },
+    {
+      match: ['patient'],
+      type: 'condition',
+      label: 'Care Setting',
+      items: [
+        { icon: 'home',        color: '#4AE0A0', title: 'Home Care',       sub: 'Caregiver essentials',     href: '/hospital-supplies/' },
+        { icon: 'users',       color: '#A78BFA', title: 'Elder Care',      sub: 'Senior daily needs',       href: '/daily-living-aids/' },
+        { icon: 'rotateccw',   color: '#FB923C', title: 'Post-Surgery',    sub: 'Recovery & rehabilitation',href: '/patient-safety/' },
+        { icon: 'clipboard',   color: '#60A5FA', title: 'Chronic Illness', sub: 'Long-term care management',href: '/enteral-feeding/' },
+      ]
+    },
+    {
+      match: ['orthopedic', 'ortho'],
+      type: 'condition',
+      label: 'Shop by Area',
+      items: [
+        { icon: 'bone',        color: '#4AE0A0', title: 'Knee & Thigh',   sub: 'Braces & supports',        href: '/thigh-knee-braces/' },
+        { icon: 'move',        color: '#60A5FA', title: 'Back & Waist',   sub: 'Lumbar & abdominal',       href: '/waist-back-braces/' },
+        { icon: 'hand',        color: '#A78BFA', title: 'Hand & Wrist',   sub: 'Splints & compression',    href: '/hand-wrist-braces/' },
+        { icon: 'footprints',  color: '#FBBF24', title: 'Foot & Ankle',   sub: 'Walkers & ankle braces',   href: '/foot-ankle-braces/' },
+      ]
+    },
+    {
+      match: ['bathroom', 'bath'],
+      type: 'condition',
+      label: 'Shop by Need',
+      items: [
+        { icon: 'shieldcheck', color: '#4AE0A0', title: 'Fall Prevention',   sub: 'Grab bars & mats',       href: '/shower-grab-bars/' },
+        { icon: 'showerhead',  color: '#60A5FA', title: 'Limited Mobility',  sub: 'Shower chairs & benches',href: '/shower-chairs-stools/' },
+        { icon: 'rotateccw',   color: '#FB923C', title: 'Post-Surgery',      sub: 'Safe bathing after surgery',href: '/transfer-benches/' },
+        { icon: 'toilet',      color: '#A78BFA', title: 'Toilet Safety',     sub: 'Raised seats & rails',   href: '/toilet-safety/' },
+      ]
+    },
+    {
+      match: ['incontinence'],
+      type: 'condition',
+      label: 'Shop by Type',
+      items: [
+        { icon: 'brief',       color: '#60A5FA', title: 'Adult Diapers',    sub: 'Tab & pull-up styles',    href: '/adult-diapers/' },
+        { icon: 'pad',         color: '#4AE0A0', title: 'Pads & Liners',    sub: 'Light to heavy absorbency',href: '/pads-guards-liners/' },
+        { icon: 'bed',         color: '#A78BFA', title: 'Bed Protection',   sub: 'Underpads & mattress pads',href: '/underpads-bed-pads/' },
+        { icon: 'user',        color: '#FBBF24', title: "Men's Solutions",  sub: 'Guards & sheaths',        href: '/just-for-men/' },
+      ]
+    },
+    {
+      match: ['personal care', 'personal'],
+      type: 'condition',
+      label: 'Shop by Need',
+      items: [
+        { icon: 'droplets',    color: '#F472B6', title: 'Skin Care',        sub: 'Lotions, creams & barriers',href: '/skin-care/' },
+        { icon: 'footprints',  color: '#4AE0A0', title: 'Foot Care',        sub: 'Diabetic & general foot health',href: '/foot-care/' },
+        { icon: 'drop',        color: '#60A5FA', title: 'Breast Pumps',     sub: 'Manual & electric',       href: '/breast-pumps/' },
+        { icon: 'shieldcheck', color: '#A78BFA', title: 'Incontinence Care',sub: 'Wipes & barrier skin care',href: '/incontinence-care/' },
+      ]
+    },
+    {
+      match: ['muscle', 'pain relief'],
+      type: 'condition',
+      label: 'Shop by Condition',
+      items: [
+        { icon: 'zap',         color: '#FBBF24', title: 'Chronic Pain',     sub: 'Arthritis & nerve pain',  href: '/massage-therapy/' },
+        { icon: 'dumbbell',    color: '#FB923C', title: 'Sports Injury',    sub: 'Sprains & muscle pulls',  href: '/muscle-pain-relief/' },
+        { icon: 'rotateccw',   color: '#4AE0A0', title: 'Post-Surgery',     sub: 'Rehab & recovery',        href: '/orthopedic-care/' },
+        { icon: 'thermometer', color: '#F87171', title: 'Migraine Relief',  sub: 'Cold & heat therapy',     href: '/muscle-pain-relief/' },
+      ]
+    },
+    {
+      match: ['daily living', 'living aids'],
+      type: 'condition',
+      label: 'Shop by Activity',
+      items: [
+        { icon: 'home',        color: '#4AE0A0', title: 'Around the House', sub: 'Kitchen & household aids', href: '/around-the-house/' },
+        { icon: 'shirt',       color: '#60A5FA', title: 'Dressing & Grooming',sub: 'Reach & dressing aids', href: '/activity-aids/' },
+        { icon: 'users',       color: '#A78BFA', title: 'Senior Independence',sub: 'Stay safe, stay active', href: '/daily-living-aids/' },
+        { icon: 'shieldcheck', color: '#FBBF24', title: 'Fall Prevention',  sub: 'Non-skid & grip aids',    href: '/around-the-house/' },
+      ]
+    },
+    {
+      match: ['medical furniture', 'furniture'],
+      type: 'condition',
+      label: 'Shop by Use',
+      items: [
+        { icon: 'bed',         color: '#60A5FA', title: 'Hospital Beds',    sub: 'Home & adjustable beds',  href: '/medical-furniture/' },
+        { icon: 'table2',      color: '#4AE0A0', title: 'Overbed Tables',   sub: 'Adjustable bedside tables',href: '/medical-furniture/' },
+        { icon: 'access',      color: '#A78BFA', title: 'Lift Chairs',      sub: 'Power recliners & lifts', href: '/medical-furniture/' },
+        { icon: 'weight',      color: '#FB923C', title: 'Bariatric',        sub: 'Heavy-duty rated furniture',href: '/medical-furniture/' },
+      ]
+    },
+    {
+      match: ['ostomy'],
+      type: 'condition',
+      label: 'Shop by Type',
+      items: [
+        { icon: 'ostomy',      color: '#A78BFA', title: 'Colostomy',        sub: 'Closed pouches & wafers',  href: '/ostomy/' },
+        { icon: 'ileostomy',   color: '#60A5FA', title: 'Ileostomy',        sub: 'Drainable pouches',        href: '/ostomy/' },
+        { icon: 'drainbag',    color: '#4AE0A0', title: 'Urostomy',         sub: 'Urine drainage systems',   href: '/ostomy/' },
+        { icon: 'cross',       color: '#FBBF24', title: 'Ostomy Accessories',sub: 'Deodorants & adhesives',  href: '/ostomy/' },
+      ]
+    },
+    {
+      match: ['laborator'],
+      type: 'condition',
+      label: 'Shop by Use',
+      items: [
+        { icon: 'flask',       color: '#60A5FA', title: 'Specimen Collection',sub: 'Tubes & containers',    href: '/laboratory-supplies-equipment/' },
+        { icon: 'shieldcheck', color: '#4AE0A0', title: 'PPE & Safety',     sub: 'Gloves, masks & gowns',   href: '/laboratory-supplies-equipment/' },
+        { icon: 'microscope',  color: '#A78BFA', title: 'Lab Instruments',  sub: 'Scales & equipment',      href: '/laboratory-supplies-equipment/' },
+        { icon: 'activity',    color: '#FBBF24', title: 'Point-of-Care',    sub: 'Rapid test kits',         href: '/laboratory-supplies-equipment/' },
+      ]
+    },
+    {
+      match: ['urinary'],
+      type: 'condition',
+      label: 'Shop by Need',
+      items: [
+        { icon: 'catheter',    color: '#60A5FA', title: 'Intermittent Catheters',sub: 'Male & female',      href: '/urinary-supplies/' },
+        { icon: 'catheter',    color: '#4AE0A0', title: 'Foley Catheters',  sub: 'Indwelling & balloon tip',href: '/urinary-supplies/' },
+        { icon: 'drainbag',    color: '#A78BFA', title: 'Drainage Bags',    sub: 'Leg & bedside bags',      href: '/urinary-supplies/' },
+        { icon: 'flame',       color: '#F87171', title: 'UTI Management',   sub: 'Hygiene & prevention',    href: '/urinary-supplies/' },
+      ]
+    },
+    {
+      match: ['more'],
+      type: 'condition',
+      label: 'Shop by Condition',
+      items: [
+        { icon: 'gauge',       color: '#60A5FA', title: 'Diabetes Care',    sub: 'Monitors, strips & supplies', href: '/diabetic-supplies/' },
+        { icon: 'bandage',     color: '#F87171', title: 'Wound Care',       sub: 'Dressings & wound prep',      href: '/wound-care/' },
+        { icon: 'access',      color: '#4AE0A0', title: 'Mobility & Balance',sub: 'Walkers, canes & wheelchairs',href: '/mobility-aids/' },
+        { icon: 'pill',        color: '#A78BFA', title: 'Post-Surgery',     sub: 'Recovery & rehab at home',    href: '/orthopedic-care/' },
+      ]
+    },
+  ];
+
+  /* ── Inline SVG icon library ────────────────────────────────────────
+     All icons: 16×16, stroke-width 1.75 — refined, modern look.
+     Arrow uses 11×11 at stroke-width 2.5 for a crisper directional cue.
+     Custom icons (*) are hand-drawn for medical specificity.
+  ───────────────────────────────────────────────────────────────────── */
+  const S  = 'width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"';
+  const SA = 'width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"  stroke-linecap="round" stroke-linejoin="round"';
+
+  const ICONS = {
+    /* ── navigation ── */
+    arrow:       `<svg ${SA}><path d="M5 12h14M12 5l7 7-7 7"/></svg>`,
+    cart:        `<svg ${S}><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`,
+
+    /* ── body / neurological ── */
+    bone:        `<svg ${S}><path d="M17 10c.7-.7 1.69 0 2.5 0a2.5 2.5 0 1 0 0-5 .5.5 0 0 1-.5-.5 2.5 2.5 0 1 0-5 0c0 .81.7 1.8 0 2.5l-7 7c-.7.7-1.69 0-2.5 0a2.5 2.5 0 0 0 0 5c.28 0 .5.22.5.5a2.5 2.5 0 1 0 5 0c0-.81-.7-1.8 0-2.5Z"/></svg>`,
+    brain:       `<svg ${S}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3Z"/></svg>`,
+    heartpulse:  `<svg ${S}><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>`,
+    syringe:     `<svg ${S}><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg>`,
+    pill:        `<svg ${S}><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>`,
+    stethoscope: `<svg ${S}><path d="M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>`,
+    thermometer: `<svg ${S}><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>`,
+    microscope:  `<svg ${S}><path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/></svg>`,
+    dumbbell:    `<svg ${S}><path d="M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z"/><path d="m2.5 21.5 1.4-1.4"/><path d="m20.1 3.9 1.4-1.4"/><path d="M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z"/><path d="m9.6 14.4 4.8-4.8"/></svg>`,
+
+    /* ── anatomy / body areas ── */
+    footprints:  `<svg ${S}><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4M4 13h4"/></svg>`,
+    hand:        `<svg ${S}><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`,
+    move:        `<svg ${S}><path d="M12 2v20M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M5 9l-3 3 3 3M9 5l3-3 3 3"/></svg>`,
+    shirt:       `<svg ${S}><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>`,
+
+    /* ── home / furniture ── */
+    home:        `<svg ${S}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+    bed:         `<svg ${S}><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/></svg>`,
+    table2:      `<svg ${S}><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>`,
+    toilet:      `<svg ${S}><path d="M7 12h13a1 1 0 0 1 1 1 5 5 0 0 1-5 5h-.598a.5.5 0 0 0-.424.765l1.544 2.47a.5.5 0 0 1-.424.765H5.402a.5.5 0 0 1-.424-.765L7 18"/><path d="M8 18a5 5 0 0 1-5-5V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8"/></svg>`,
+    weight:      `<svg ${S}><circle cx="12" cy="5" r="3"/><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z"/></svg>`,
+
+    /* ── liquids / chemistry ── */
+    drop:        `<svg ${S}><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>`,
+    droplets:    `<svg ${S}><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>`,
+    flask:       `<svg ${S}><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7M7 16h10"/></svg>`,
+    testtube:    `<svg ${S}><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5-1.4 0-2.5-1.1-2.5-2.5V2"/><path d="M8.5 2h7M14.5 16h-5"/></svg>`,
+    flame:       `<svg ${S}><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>`,
+
+    /* ── protection / safety ── */
+    shieldcheck: `<svg ${S}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>`,
+
+    /* ── shower / bathroom ── */
+    showerhead:  `<svg ${S}><path d="M4 4a2 2 0 0 1 2-2"/><path d="M4 4a10 10 0 0 1 10 10v2a6 6 0 0 1-6 6H4a2 2 0 0 1-2-2v-4a6 6 0 0 1 6-6"/><path d="M9 9h.01M9 13h.01M13 13h.01"/></svg>`,
+
+    /* ── accessibility / mobility ── */
+    access:      `<svg ${S}><circle cx="16" cy="4" r="1"/><path d="m18 19 1-7-6 1"/><path d="m5 8 3-3 5.5 3-2.36 3.5"/><path d="M4.24 14.5a5 5 0 0 0 6.88 6"/><path d="M13.76 17.5a5 5 0 0 0-6.88-6"/></svg>`,
+
+    /* ── people / community ── */
+    users:       `<svg ${S}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+
+    /* ── data / trends / monitoring ── */
+    activity:    `<svg ${S}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+    trenddown:   `<svg ${S}><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>`,
+    gauge:       `<svg ${S}><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`,
+    zap:         `<svg ${S}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+
+    /* ── documents / care plans ── */
+    clipboard:   `<svg ${S}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>`,
+
+    /* ── rehab / recovery ── */
+    rotateccw:   `<svg ${S}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>`,
+
+    /* ── first aid ── */
+    cross:       `<svg ${S}><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>`,
+
+    /* ── wound care prep ── *  spray bottle / antiseptic */
+    spray:       `<svg ${S}><rect x="8" y="9" width="8" height="13" rx="2"/><path d="M10 9V6h5v3"/><line x1="12.5" y1="6" x2="12.5" y2="3"/><path d="M16 11q2-1 3-2"/><path d="M16 14q2-1 3.5-1.5"/><path d="M16 17q1.5-.5 3 0"/></svg>`,
+
+    /* ── CUSTOM MEDICAL ICONS ── */
+
+    /* * Ostomy pouch — flange ring (outer + stoma hole) + hanging pouch + closure clip */
+    ostomy:      `<svg ${S}><circle cx="12" cy="8" r="5"/><circle cx="12" cy="8" r="2"/><path d="M7.5 10.5 C6.5 15 7.5 19.5 12 21 C16.5 19.5 17.5 15 16.5 10.5"/><path d="M10 21 L10 22.5 L14 22.5 L14 21"/></svg>`,
+
+    /* * Drainable ostomy pouch (ileostomy) — same flange + pouch with open drain tail */
+    ileostomy:   `<svg ${S}><circle cx="12" cy="7" r="5"/><circle cx="12" cy="7" r="2"/><path d="M7.5 9 C6.5 14 7.5 18 12 19.5 C16.5 18 17.5 14 16.5 9"/><path d="M10.5 19.5 Q10 21 12 22 Q14 21 13.5 19.5"/><line x1="12" y1="22" x2="12" y2="24"/></svg>`,
+
+    /* * Urostomy drainage bag — inlet tube + trapezoidal bag body + volume line + drain spout */
+    drainbag:    `<svg ${S}><line x1="12" y1="2" x2="12" y2="5.5"/><path d="M8.5 5.5 Q7 14 12 20.5 Q17 14 15.5 5.5 Z"/><path d="M8.5 5.5 Q12 3.5 15.5 5.5"/><path d="M9.5 13 Q12 15 14.5 13"/><line x1="11" y1="20.5" x2="10" y2="23"/><line x1="13" y1="20.5" x2="14" y2="23"/></svg>`,
+
+    /* * Adult brief/diaper — front view: waistband, side tabs, front + back panels with leg curves */
+    brief:       `<svg ${S}><line x1="4" y1="5" x2="20" y2="5"/><path d="M4 5 L4 19 Q12 22.5 20 19 L20 5"/><path d="M4 5 Q8 12 12 12 Q16 12 20 5"/><path d="M4 5 L2 3 L6 3"/><path d="M20 5 L22 3 L18 3"/></svg>`,
+
+    /* * Incontinence pad — elongated oval with layered absorbency lines */
+    pad:         `<svg ${S}><ellipse cx="12" cy="12" rx="4" ry="8.5"/><path d="M9.5 8.5 Q12 10.5 14.5 8.5"/><path d="M9 12.5 Q12 14.5 15 12.5"/><path d="M9.5 16 Q12 18 14.5 16"/></svg>`,
+
+    /* * Urinary catheter — Y-luer connector + flexible tube + inflatable balloon tip + drain ports */
+    catheter:    `<svg ${S}><path d="M8 2 L12 5.5 L16 2"/><line x1="12" y1="5.5" x2="12" y2="14.5"/><ellipse cx="12" cy="18" rx="3.5" ry="3"/><line x1="10.5" y1="20.5" x2="9.5" y2="22.5"/><line x1="13.5" y1="20.5" x2="14.5" y2="22.5"/></svg>`,
+
+    /* ── other ── */
+    layers:      `<svg ${S}><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>`,
+    user:        `<svg ${S}><circle cx="12" cy="7" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>`,
+    heart:       `<svg ${S}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+  };
+
+  function icon(name) { return ICONS[name] || ICONS.activity; }
+
+  function getRightPanel(catName) {
+    const n = catName.toLowerCase();
+    for (const p of RIGHT_PANELS) {
+      if (p.match.some(k => n.includes(k))) return p;
+    }
+    return null;
+  }
+
+  /* ── Build right panel HTML ─────────────────────────────────────────── */
+  function buildConditionPanel(p) {
+    const items = p.items.map(it => {
+      const bg  = rgba(it.color, 0.18);
+      const col = it.color;
+      return `
+      <li>
+        <a href="${it.href || '#'}">
+          <div class="medex-cond-icon" style="background:${bg};color:${col};">${icon(it.icon)}</div>
+          <div>
+            <div class="medex-cond-label">${it.title}</div>
+            <div class="medex-cond-sub">${it.sub}</div>
+          </div>
+        </a>
+      </li>`;
+    }).join('');
+    return `
+      <li class="navPage-subMenu-item medex-panel medex-panel--condition">
+        <span class="medex-panel-title">${p.label}</span>
+        <ul class="medex-condition-list">${items}</ul>
+      </li>`;
+  }
+
+  function buildProductPanel(p) {
+    const stars = Math.round(parseFloat(p.rating));
+    const starStr = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+    const imgHtml = p.img
+      ? `<img class="medex-product-img" src="${p.img}" alt="${p.name}" loading="lazy">`
+      : `<div class="medex-product-img medex-product-img--placeholder"></div>`;
+    return `
+      <li class="navPage-subMenu-item medex-panel medex-panel--product">
+        <span class="medex-panel-title">${p.label}</span>
+        <div class="medex-product-card">
+          ${imgHtml}
+          <div class="medex-product-badge">${p.badge}</div>
+          <div class="medex-product-name">${p.name}</div>
+          <div class="medex-product-stars">${starStr} <span>(${p.reviews})</span></div>
+          <div class="medex-product-price">${p.price} <s>${p.was}</s></div>
+          <a class="medex-product-btn" href="${p.url}">${icon('cart')} View Product</a>
+        </div>
+      </li>`;
+  }
+
+  function buildRightPanel(catName) {
+    const p = getRightPanel(catName);
+    if (!p) return '';
+    if (p.type === 'condition') return buildConditionPanel(p);
+    if (p.type === 'product')   return buildProductPanel(p);
+    return '';
+  }
+
+  /* ── 2. CSS ─────────────────────────────────────────────────────────── */
+  const CSS = `
+@media (min-width: 800px) {
+
+  /* ── Prevent 2-line flash before BC autoFit runs ──
+     Stops nav items wrapping to a second row on initial paint.
+     BC's own autoFit collapses overflow into "More" shortly after. */
+  .navPages-list--categories {
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+  }
+
+  .navPages-container { position: relative !important; }
+  .navPages-list--categories > .navPages-item { position: static !important; }
+
+  /* ── Dropdown panel ── */
+  .navPage-subMenu {
+    display: block !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0;
+    max-width: calc(100vw - 32px) !important;
+    background: #fff !important;
+    border-top: 3px solid #00A86B !important;
+    border-radius: 0 0 10px 10px !important;
+    box-shadow: 0 20px 56px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.06) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    z-index: 9999 !important;
+    transform: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s !important;
+    transform: translateY(-8px) !important;
+  }
+
+  .navPages-item.medex-open > .navPage-subMenu {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear 0s !important;
+  }
+
+  /* ── Column list ── */
+  .navPage-subMenu > .navPage-subMenu-list,
+  .navPage-subMenu > .medex-list-wrap > .navPage-subMenu-list {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    list-style: none !important;
+    padding: 0 !important; margin: 0 !important;
+    min-height: 260px !important;
+  }
+
+  /* ── Each subcategory column ── */
+  .navPage-subMenu .navPage-subMenu-item {
+    width: 210px !important;
+    flex-shrink: 0 !important;
+    padding: 26px 22px !important;
+    border-right: 1px solid #E2E8F0 !important;
+    display: flex !important; flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+  .navPage-subMenu .navPage-subMenu-item.medex-col-hidden {
+    display: none !important;
+    width: 0 !important; min-width: 0 !important;
+    padding: 0 !important; border: none !important;
+    overflow: hidden !important;
+  }
+
+  /* ── Column title ── */
+  .navPage-subMenu .navPage-subMenu-item > .navPages-action.has-subMenu,
+  .navPage-subMenu .navPage-subMenu-item > .navPage-subMenu-action.has-subMenu {
+    display: block !important;
+    height: auto !important;
+    padding: 0 0 10px !important;
+    font-size: 11.5px !important; font-weight: 700 !important;
+    color: #0055A5 !important; text-transform: uppercase !important;
+    letter-spacing: .07em !important; line-height: 1.3 !important;
+    border: none !important; border-bottom: 2px solid #E8F2FF !important;
+    margin-bottom: 14px !important; background: transparent !important;
+    text-decoration: none !important; flex-shrink: 0 !important;
+    transition: color .15s !important;
+  }
+  .navPage-subMenu .navPage-subMenu-item > .navPages-action.has-subMenu:hover { color: #003D7A !important; }
+
+  .navPage-subMenu .navPages-action-moreIcon { display: none !important; }
+  .navPage-subMenu .navPage-subMenu-item.medex-viewall-row { display: none !important; }
+
+  /* ── Child list ── */
+  .navPage-subMenu .navPage-childList {
+    display: block !important;
+    list-style: none !important; padding: 0 !important; margin: 0 !important;
+    max-height: none !important; overflow: visible !important;
+  }
+  .navPage-subMenu .navPage-childList-item { margin-bottom: 5px !important; }
+  .navPage-subMenu .navPage-childList-action {
+    display: flex !important; align-items: center !important; gap: 7px !important;
+    font-size: 13px !important; color: #334155 !important;
+    padding: 3px 0 !important; text-decoration: none !important;
+    background: none !important; border: none !important;
+    height: auto !important; font-weight: 400 !important;
+    transition: color .13s !important;
+  }
+  .navPage-subMenu .navPage-childList-action::before {
+    content: '' !important; width: 4px !important; height: 4px !important;
+    border-radius: 50% !important; background: #CBD5E1 !important;
+    flex-shrink: 0 !important; display: block !important;
+    transition: background .13s !important;
+  }
+  .navPage-subMenu .navPage-childList-action:hover { color: #0055A5 !important; }
+  .navPage-subMenu .navPage-childList-action:hover::before { background: #0055A5 !important; }
+
+  /* ── View all ── */
+  .medex-col-viewall {
+    display: inline-flex !important; align-items: center !important; gap: 5px !important;
+    margin-top: auto !important; padding-top: 14px !important;
+    font-size: 12px !important; font-weight: 600 !important; color: #0055A5 !important;
+    text-decoration: none !important; flex-shrink: 0 !important;
+    transition: gap .15s, color .15s !important;
+  }
+  .medex-col-viewall:hover { color: #003D7A !important; gap: 8px !important; }
+
+  /* ── RIGHT PANELS ── */
+  .navPage-subMenu .medex-panel {
+    width: 230px !important; flex-shrink: 0 !important;
+    border-right: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .medex-panel-title {
+    display: block !important;
+    font-size: 11px !important; font-weight: 700 !important;
+    text-transform: uppercase !important; letter-spacing: .08em !important;
+    padding-bottom: 10px !important; margin-bottom: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Condition panel */
+  .medex-panel--condition {
+    background: linear-gradient(160deg, #0A1628 0%, #0d2040 100%) !important;
+    position: relative !important; overflow: hidden !important;
+  }
+  .medex-panel--condition::after {
+    content: '' !important; position: absolute !important;
+    bottom: -50px !important; right: -50px !important;
+    width: 160px !important; height: 160px !important; border-radius: 50% !important;
+    background: rgba(0,168,107,.12) !important; pointer-events: none !important;
+  }
+  .medex-panel--condition .medex-panel-title { color: rgba(255,255,255,.35) !important; }
+
+  .medex-condition-list {
+    list-style: none !important; padding: 0 !important; margin: 0 !important;
+    display: flex !important; flex-direction: column !important; gap: 7px !important;
+    position: relative !important; z-index: 1 !important;
+  }
+  .medex-condition-list a {
+    display: flex !important; align-items: center !important; gap: 11px !important;
+    padding: 9px 11px !important; border-radius: 9px !important;
+    background: rgba(255,255,255,.05) !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    text-decoration: none !important;
+    transition: background .15s, border-color .15s !important;
+  }
+  .medex-condition-list a:hover {
+    background: rgba(255,255,255,.10) !important;
+    border-color: rgba(255,255,255,.15) !important;
+  }
+
+  /* Icon container — color set via inline style; size upgraded to 34×34 */
+  .medex-cond-icon {
+    width: 34px !important; height: 34px !important; border-radius: 8px !important;
+    display: flex !important; align-items: center !important;
+    justify-content: center !important; flex-shrink: 0 !important;
+    transition: filter .15s !important;
+  }
+  .medex-condition-list a:hover .medex-cond-icon {
+    filter: brightness(1.25) !important;
+  }
+
+  .medex-cond-label {
+    font-size: 12.5px !important; font-weight: 600 !important;
+    color: rgba(255,255,255,.85) !important; line-height: 1.2 !important;
+  }
+  .medex-cond-sub {
+    font-size: 11px !important; color: rgba(255,255,255,.38) !important;
+    margin-top: 2px !important;
+  }
+
+  /* Product panel */
+  .medex-panel--product { background: #F8FAFD !important; }
+  .medex-panel--product .medex-panel-title { color: #64748B !important; }
+  .medex-product-card { display: flex !important; flex-direction: column !important; gap: 9px !important; }
+  .medex-product-img {
+    width: 100% !important; height: 100px !important; background: #fff !important;
+    border: 1.5px solid #E2E8F0 !important; border-radius: 8px !important;
+    display: block !important; object-fit: contain !important; flex-shrink: 0 !important;
+  }
+  .medex-product-img--placeholder {
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    font-size: 11px !important; color: #CBD5E1 !important;
+  }
+  .medex-product-badge {
+    display: inline-block !important; font-size: 10px !important; font-weight: 700 !important;
+    text-transform: uppercase !important; letter-spacing: .06em !important;
+    background: #FEF3C7 !important; color: #92400E !important;
+    padding: 2px 7px !important; border-radius: 4px !important; width: fit-content !important;
+  }
+  .medex-product-name { font-size: 13px !important; font-weight: 600 !important; color: #0A1628 !important; line-height: 1.3 !important; }
+  .medex-product-stars { color: #F59E0B !important; font-size: 12px !important; }
+  .medex-product-stars span { color: #64748B !important; font-size: 11px !important; }
+  .medex-product-price { font-size: 17px !important; font-weight: 700 !important; color: #0055A5 !important; }
+  .medex-product-price s { font-size: 12px !important; font-weight: 400 !important; color: #94A3B8 !important; margin-left: 4px !important; }
+  .medex-product-btn {
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    gap: 6px !important; background: #0055A5 !important; color: #fff !important;
+    border: none !important; border-radius: 7px !important; padding: 9px 14px !important;
+    font-size: 12.5px !important; font-weight: 600 !important; cursor: pointer !important;
+    text-decoration: none !important; font-family: inherit !important;
+    transition: background .15s !important;
+  }
+  .medex-product-btn:hover { background: #003D7A !important; color: #fff !important; }
+
+  .navPage-subMenu .scroll-container { max-height: none !important; overflow: visible !important; }
+
+  /* ── More menu: identical format to regular category columns ── */
+  /* Hide sub-sub-categories (keep one level deep) */
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPage-childList { display: none !important; }
+  /* Same column width as regular menus */
+  .navPage-subMenu[data-medex-more] .navPage-subMenu-item { width: 210px !important; padding: 26px 22px !important; }
+  /* Nuke every possible source of indentation — BC may apply has-subMenu,
+     navPages-action, or theme padding to overflow category items */
+  .navPage-subMenu[data-medex-more] .navPage-childList-item {
+    padding: 0 !important; margin: 0 0 5px 0 !important;
+    text-indent: 0 !important; list-style: none !important;
+  }
+  .navPage-subMenu[data-medex-more] .navPage-childList-item > a,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPages-action,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPage-childList-action {
+    display: flex !important; align-items: center !important; gap: 7px !important;
+    font-size: 13px !important; font-weight: 400 !important; color: #334155 !important;
+    padding: 3px 0 !important; margin: 0 !important; text-indent: 0 !important;
+    text-decoration: none !important; text-transform: none !important;
+    letter-spacing: normal !important; background: none !important;
+    border: none !important; height: auto !important; min-height: 0 !important;
+    width: auto !important; line-height: 1.4 !important; transition: color .13s !important;
+  }
+  .navPage-subMenu[data-medex-more] .navPage-childList-item > a:hover,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPages-action:hover,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPage-childList-action:hover { color: #0055A5 !important; }
+  /* Bullet dots matching regular column child links */
+  .navPage-subMenu[data-medex-more] .navPage-childList-item > a::before,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPages-action::before,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPage-childList-action::before {
+    content: '' !important; width: 4px !important; height: 4px !important;
+    border-radius: 50% !important; background: #CBD5E1 !important;
+    flex-shrink: 0 !important; display: block !important; transition: background .13s !important;
+  }
+  .navPage-subMenu[data-medex-more] .navPage-childList-item > a:hover::before,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPages-action:hover::before,
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPage-childList-action:hover::before { background: #0055A5 !important; }
+  /* Suppress caret icons inside More child links */
+  .navPage-subMenu[data-medex-more] .navPage-childList .navPages-action-moreIcon { display: none !important; }
+
+  /* ── Also explore bar ── */
+  .medex-also-explore {
+    display: block !important; width: 100% !important;
+    padding: 10px 22px 14px !important; border-top: 1px solid #E2E8F0 !important;
+    background: #F8FAFD !important; font-size: 12px !important;
+    color: #94A3B8 !important; line-height: 1.6 !important; box-sizing: border-box !important;
+  }
+  .medex-also-explore-label { font-weight: 600 !important; color: #64748B !important; margin-right: 4px !important; }
+  .medex-also-explore a { color: #0055A5 !important; text-decoration: none !important; font-weight: 500 !important; transition: color .13s !important; }
+  .medex-also-explore a:hover { color: #003D7A !important; text-decoration: underline !important; }
+  .medex-also-explore-sep { color: #CBD5E1 !important; margin: 0 5px !important; }
+  .medex-also-explore.medex-hidden { display: none !important; }
+}
+
+@media (min-width: 800px) and (max-width: 1100px) {
+  .navPage-subMenu .navPage-subMenu-item { width: 180px !important; padding: 22px 16px !important; }
+}
+`;
+
+  /* ── 3. INJECT CSS — called immediately at parse time to minimise flash ── */
+  function injectCSS() {
+    if (document.getElementById('medex-mega-v3-css')) return;
+    const s = document.createElement('style');
+    s.id = 'medex-mega-v3-css';
+    s.textContent = CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+
+  // Inject immediately so CSS lands before first paint (works best when
+  // script is placed in <head> via Script Manager — change location from
+  // "Footer" to "Head" for the smoothest result).
+  injectCSS();
+
+  /* ── 4. ENHANCE EACH NAV ITEM ───────────────────────────────────────── */
+  const MAX_ITEMS = 5;
+
+  function enhanceItem(item) {
+    if (item.dataset.medexEnhanced) return;
+    const subMenu = item.querySelector(':scope > .navPage-subMenu');
+    if (!subMenu) return;
+    const trigger = item.querySelector(':scope > .navPages-action');
+    if (!trigger) return;
+    const catName = (trigger.firstChild && trigger.firstChild.nodeType === 3)
+      ? trigger.firstChild.textContent.trim()
+      : trigger.textContent.replace(/[\u25be\u25bc▾▼]/g, '').trim();
+    const cols = subMenu.querySelectorAll('.navPage-subMenu-item');
+    if (cols.length === 0) return;
+
+    item.dataset.medexEnhanced = '1';
+    const isMore = catName.toLowerCase().includes('more');
+    if (isMore) subMenu.dataset.medexMore = '1';
+
+    if (!isMore) {
+      const firstItem = subMenu.querySelector('.navPage-subMenu-item:first-child');
+      if (firstItem) firstItem.classList.add('medex-viewall-row');
+    }
+
+    subMenu.querySelectorAll('.navPage-subMenu-item:not(.medex-viewall-row)').forEach(col => {
+      const titleLink = col.querySelector(':scope > .navPages-action, :scope > .navPage-subMenu-action');
+      const colHref = titleLink ? (titleLink.getAttribute('href') || '#') : '#';
+      const colName = titleLink ? titleLink.firstChild.textContent.trim() : '';
+      const childList = col.querySelector('.navPage-childList');
+      if (childList) {
+        const kids = childList.querySelectorAll(':scope > .navPage-childList-item');
+        kids.forEach((li, i) => { if (i >= MAX_ITEMS) li.style.display = 'none'; });
+      }
+      if (!col.querySelector('.medex-col-viewall')) {
+        const a = document.createElement('a');
+        a.className = 'medex-col-viewall';
+        a.href = colHref;
+        a.innerHTML = `View all ${colName} ${ICONS.arrow}`;
+        col.appendChild(a);
+      }
+    });
+
+    const panelHTML = buildRightPanel(catName);
+    if (panelHTML) {
+      const list = subMenu.querySelector('.navPage-subMenu-list');
+      if (list && !subMenu.querySelector('.medex-panel')) {
+        list.insertAdjacentHTML('beforeend', panelHTML);
+      }
+    }
+  }
+
+  function enhanceAll() {
+    document.querySelectorAll('.navPages-list--categories > .navPages-item').forEach(enhanceItem);
+  }
+
+  /* ── 5. COLUMN FITTING + TETHERED POSITIONING ───────────────────────── */
+  const GUTTER   = 16;
+  const ATTACH   = 60;
+  const PANEL_W  = 230;
+  const COL_W_LG   = 210;
+  const COL_W_SM   = 175;
+
+  const navContainer = () => document.querySelector('.navPages-container');
+
+  function colWidth(sub) {
+    return window.innerWidth >= 1100 ? COL_W_LG : COL_W_SM;
+  }
+  function colPad(sub) {
+    return window.innerWidth >= 1100 ? '26px 22px' : '22px 16px';
+  }
+
+  function fitColumns(sub) {
+    const vw        = window.innerWidth;
+    const available = vw - GUTTER * 2;
+    const cw        = colWidth(sub);
+    const pad       = colPad(sub);
+    const panel     = sub.querySelector('.medex-panel');
+    const allCols   = Array.from(sub.querySelectorAll('.navPage-subMenu-item'));
+    const regCols   = allCols.filter(c =>
+      !c.classList.contains('medex-panel') &&
+      !c.classList.contains('medex-viewall-row')
+    );
+    const spaceForCols = available - (panel ? PANEL_W : 0);
+    const maxFit = Math.max(1, Math.floor(spaceForCols / cw));
+    const scored = regCols.map(col => ({
+      el:    col,
+      count: col.querySelectorAll('.navPage-childList-action, .navPage-childList a').length,
+    }));
+    const keep = new Set(
+      [...scored].sort((a, b) => b.count - a.count).slice(0, maxFit).map(s => s.el)
+    );
+    let visibleCount = 0;
+    regCols.forEach(col => {
+      const show = keep.has(col);
+      col.classList.toggle('medex-col-hidden', !show);
+      if (show) {
+        col.style.width   = cw + 'px';
+        col.style.padding = pad;
+        visibleCount++;
+      }
+    });
+    if (panel) {
+      panel.style.display = 'flex';
+      panel.style.width   = PANEL_W + 'px';
+      panel.style.padding = pad;
+    }
+    const totalW = visibleCount * cw + (panel ? PANEL_W : 0);
+    sub.style.width = Math.min(totalW, window.innerWidth - GUTTER * 2) + 'px';
+
+    const hiddenCols = regCols.filter(col => !keep.has(col));
+    let exploreEl = sub.querySelector('.medex-also-explore');
+    if (hiddenCols.length > 0) {
+      const links = hiddenCols.map(col => {
+        const a = col.querySelector(':scope > .navPages-action, :scope > .navPage-subMenu-action');
+        const href = a ? (a.getAttribute('href') || '#') : '#';
+        const name = a
+          ? (a.firstChild && a.firstChild.nodeType === 3
+              ? a.firstChild.textContent.trim()
+              : a.textContent.replace(/[\u25be\u25bc▾▼]/g, '').trim())
+          : '';
+        return name ? `<a href="${href}">${name}</a>` : '';
+      }).filter(Boolean);
+      if (links.length > 0) {
+        if (!exploreEl) {
+          exploreEl = document.createElement('div');
+          exploreEl.className = 'medex-also-explore';
+          sub.appendChild(exploreEl);
+        }
+        exploreEl.innerHTML =
+          `<span class="medex-also-explore-label">Also explore:</span> ` +
+          links.map((l, i) => i < links.length - 1
+            ? `${l}<span class="medex-also-explore-sep">·</span>`
+            : l
+          ).join('');
+        exploreEl.classList.remove('medex-hidden');
+      } else if (exploreEl) { exploreEl.classList.add('medex-hidden'); }
+    } else if (exploreEl) { exploreEl.classList.add('medex-hidden'); }
+  }
+
+  function positionMenu(item) {
+    if (window.innerWidth < 800) return;
+    const sub = item.querySelector(':scope > .navPage-subMenu');
+    if (!sub) return;
+    fitColumns(sub);
+    const nc = navContainer();
+    if (!nc) return;
+    const containerRect = nc.getBoundingClientRect();
+    const itemRect      = item.getBoundingClientRect();
+    const subW          = parseInt(sub.style.width, 10) || sub.offsetWidth;
+    const vw            = window.innerWidth;
+    const itemCX  = itemRect.left + itemRect.width / 2;
+    const idealVP = vw / 2 - subW / 2;
+    const tethMin = itemCX - (subW - ATTACH);
+    const tethMax = itemCX - ATTACH;
+    const vpMin   = GUTTER;
+    const vpMax   = vw - subW - GUTTER;
+    const rangeMin = Math.max(tethMin, vpMin);
+    const rangeMax = Math.min(tethMax, vpMax);
+    const bestVP = (rangeMin <= rangeMax)
+      ? Math.max(rangeMin, Math.min(idealVP, rangeMax))
+      : Math.max(vpMin, Math.min(idealVP, vpMax));
+    sub.style.left = Math.round(bestVP - containerRect.left) + 'px';
+  }
+
+  /* ── 6. SHOW / HIDE ─────────────────────────────────────────────────── */
+  const SHOW_DELAY = 80;
+  const HIDE_DELAY = 150;
+  const showTimers = new Map();
+  const hideTimers = new Map();
+
+  function show(item) {
+    if (hideTimers.has(item)) { clearTimeout(hideTimers.get(item)); hideTimers.delete(item); }
+    if (showTimers.has(item)) { clearTimeout(showTimers.get(item)); showTimers.delete(item); }
+    let anyOtherOpen = false;
+    document.querySelectorAll('.navPages-item.medex-open').forEach(el => {
+      if (el !== item) { close(el, true); anyOtherOpen = true; }
+    });
+    if (anyOtherOpen) {
+      enhanceItem(item); positionMenu(item); item.classList.add('medex-open');
+    } else {
+      const t = setTimeout(() => {
+        showTimers.delete(item);
+        enhanceItem(item); positionMenu(item); item.classList.add('medex-open');
+      }, SHOW_DELAY);
+      showTimers.set(item, t);
+    }
+  }
+
+  function close(item, immediate) {
+    if (showTimers.has(item)) { clearTimeout(showTimers.get(item)); showTimers.delete(item); }
+    if (hideTimers.has(item)) { clearTimeout(hideTimers.get(item)); hideTimers.delete(item); }
+    if (immediate) {
+      item.classList.remove('medex-open');
+    } else {
+      hideTimers.set(item, setTimeout(() => {
+        item.classList.remove('medex-open'); hideTimers.delete(item);
+      }, HIDE_DELAY));
+    }
+  }
+
+  /* ── 7. EVENTS ──────────────────────────────────────────────────────── */
+  function bindEvents() {
+    const nav = document.querySelector('.navPages');
+    if (!nav || nav.dataset.medexBound) return;
+    nav.dataset.medexBound = '1';
+
+    nav.addEventListener('mouseenter', e => {
+      const item = e.target.closest('.navPages-list--categories > .navPages-item');
+      if (item && item.querySelector(':scope > .navPage-subMenu')) show(item);
+    }, true);
+    nav.addEventListener('mouseleave', e => {
+      const item = e.target.closest('.navPages-list--categories > .navPages-item');
+      if (!item) return;
+      if (e.relatedTarget && item.contains(e.relatedTarget)) return;
+      close(item, false);
+    }, true);
+    nav.addEventListener('mouseenter', e => {
+      const sub = e.target.closest('.navPage-subMenu');
+      if (!sub) return;
+      const item = sub.closest('.navPages-item');
+      if (!item) return;
+      if (hideTimers.has(item)) { clearTimeout(hideTimers.get(item)); hideTimers.delete(item); }
+    }, true);
+    nav.addEventListener('mouseleave', e => {
+      const sub = e.target.closest('.navPage-subMenu');
+      if (!sub) return;
+      const item = sub.closest('.navPages-item');
+      if (!item) return;
+      if (e.relatedTarget && item.contains(e.relatedTarget)) return;
+      close(item, false);
+    }, true);
+    nav.addEventListener('focusin', e => {
+      const item = e.target.closest('.navPages-list--categories > .navPages-item');
+      if (item && item.querySelector(':scope > .navPage-subMenu')) show(item);
+    }, true);
+    nav.addEventListener('focusout', e => {
+      const item = e.target.closest('.navPages-list--categories > .navPages-item');
+      if (item) setTimeout(() => { if (!item.contains(document.activeElement)) close(item, true); }, 50);
+    }, true);
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.navPages-list--categories > .navPages-item'))
+        document.querySelectorAll('.navPages-item.medex-open').forEach(el => close(el, true));
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape')
+        document.querySelectorAll('.navPages-item.medex-open').forEach(el => close(el, true));
+    });
+    window.addEventListener('scroll', () => {
+      document.querySelectorAll('.navPages-item.medex-open').forEach(el => close(el, true));
+    }, { passive: true });
+    let raf;
+    window.addEventListener('resize', () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const open = document.querySelector('.navPages-item.medex-open');
+        if (open) positionMenu(open);
+      });
+    }, { passive: true });
+  }
+
+  /* ── 8. INIT ────────────────────────────────────────────────────────── */
+  function init() { enhanceAll(); bindEvents(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+
+  document.addEventListener('loaded.instantload', () => {
+    enhanceAll();
+    const nav = document.querySelector('.navPages');
+    if (nav) delete nav.dataset.medexBound;
+    bindEvents();
+  });
+
+})();
+</script>
