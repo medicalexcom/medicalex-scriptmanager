@@ -1,0 +1,276 @@
+<script>
+/*
+  Supermarket PDP – Add Shipping/Returns tabs + SEO <h2> + FAQ Schema + Safe Renames
+  Non-interfering: no style cleanup, no show/hide, no active-class changes, no click handlers.
+  Keeps all requested features; only appends our nodes and renames text labels.
+*/
+(function () {
+  if (window.MEDEX_TABS_SAFE && window.MEDEX_TABS_SAFE.v === 2) return;
+  window.MEDEX_TABS_SAFE = { v: 2 };
+
+  /* ===================== RESPONSIVE VISIBILITY (NEW) ===================== */
+  // Hide Shipping/Returns on small screens; show on desktop+
+  (function injectResponsiveCSS(){
+    if (document.getElementById('medex-tabs-responsive-css')) return;
+    var css = `
+      /* Small screens: hide the Shipping/Returns tab headers + their panels */
+      @media (max-width: 800px) {
+        .productView .tabs .tab[data-medex-title="shipping"],
+        .productView .tabs-contents .tab-content[data-medex-title="shipping"],
+        .productView .tabs .tab[data-medex-title="returns"],
+        .productView .tabs-contents .tab-content[data-medex-title="returns"] {
+          display: none !important;
+        }
+      }
+    `;
+    var s = document.createElement('style');
+    s.id = 'medex-tabs-responsive-css';
+    s.textContent = css;
+    document.head.appendChild(s);
+  })();
+  /* ====================================================================== */
+
+  /* ===================== CONFIG: edit copy/links here ===================== */
+  var TABS = [
+    {
+      title: 'Shipping',
+      html:
+        '<h2>Free Shipping & Fast Delivery Policy – Nationwide Medical Supplies</h2>' +
+        '<ul>' +
+          '<li><strong>Processing Time:</strong> Orders ship within 1–2 business days (weekend/holiday orders ship next business day).</li>' +
+          '<li><strong>Free Standard Shipping:</strong> Domestic orders $50+ qualify for free delivery.</li>' +
+          '<li><strong>Flat Rate:</strong> $6.95 for orders under $50.</li>' +
+          '<li><strong>Trusted Carriers:</strong> Selected by our fulfillment partners for speed and reliability.</li>' +
+          '<li><strong>Direct-from-Manufacturer:</strong> Some items ship from the manufacturer and may require extra lead time.</li>' +
+          '<li><strong>Specialty Products:</strong> Certain specialty medical items — such as BD products — may require verification by the manufacturer, which can extend handling time by a few days before shipment.</li>' +
+          '<li><strong>Tracking:</strong> Emailed immediately after your order ships.</li>' +
+        '</ul>' +
+        '<p>See our <a href="/shipping-policy/">full Shipping Policy</a> or <a href="/contact-us/">contact us</a> for assistance.</p>'
+    },
+    {
+      title: 'Returns',
+      html:
+        '<h2>Easy Returns & Hassle-Free Exchanges – Medical Products Policy</h2>' +
+        '<ul>' +
+          '<li><strong>Return Window:</strong> 30 days from delivery.</li>' +
+          '<li><strong>Condition:</strong> Unused, in original packaging, with all accessories.</li>' +
+          '<li><strong>Non-Returnable Items:</strong> Opened sterile products, hygiene items, and certain medical devices.</li>' +
+          '<li><strong>Custom/Special Orders:</strong> May be non-returnable or subject to a restocking fee.</li>' +
+          '<li><strong>Start a Return:</strong> Use our <a href="/login.php">Returns Center</a> with your order number.</li>' +
+          '<li><strong>Refunds:</strong> Issued to the original payment method after inspection.</li>' +
+        '</ul>' +
+        '<p>Read our <a href="/return-policy/">full Returns Policy</a> or <a href="/contact-us/">contact us</a> for help.</p>'
+    }
+  ];
+
+  // FAQ schema (invisible to users; edit Q/A if needed)
+  var FAQ_QA = [
+    { q: 'How long does shipping take?', a: 'Most orders are processed and ship within 1–2 business days. Weekend and holiday orders ship the next business day.' },
+    { q: 'How much is shipping?', a: 'Orders $50+ qualify for free standard shipping. Orders under $50 have a $6.95 flat rate.' },
+    { q: 'How long do I have to return an item?', a: 'You can return eligible items within 30 days of delivery.' },
+    { q: 'What items are non-returnable?', a: 'Opened sterile products, hygiene items, and certain medical devices cannot be returned.' }
+  ];
+
+  // Tab label renames: text-only changes (no attribute or class edits)
+  var RENAME_RULES = [
+    { test: function(txt){ return txt === 'warranty information'; }, to: 'Warranty' },
+    { test: function(txt){ return /^\d+\s+reviews?$/.test(txt); }, to: 'Reviews' }, // "3 Reviews", "12 Review"
+    { test: function(txt){ return txt === 'reviews'; }, to: 'Reviews' }             // fallback normalization
+  ];
+  /* ====================================================================== */
+
+  function qs(sel, root){ return (root||document).querySelector(sel); }
+  function qsa(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  function renameExistingLabels(pv){
+    var nodes = qsa('.tab .tab-title, [role="tab"]', pv);
+    nodes.forEach(function(el){
+      var raw = (el.textContent || '').trim();
+      var txt = raw.toLowerCase();
+      for (var i=0;i<RENAME_RULES.length;i++){
+        if (RENAME_RULES[i].test(txt)) { el.textContent = RENAME_RULES[i].to; break; }
+      }
+    });
+  }
+
+  function hasOurTab(pv, title){
+    return !!qs('.tab[data-medex="1"][data-medex-title="' + (title||'').trim().toLowerCase() + '"]', pv);
+  }
+
+  function appendTab(pv, title, html){
+    var tabs   = qs('.productView .tabs', pv);
+    var panels = qs('.productView .tabs-contents', pv);
+    if (!tabs || !panels) return false;
+
+    if (hasOurTab(pv, title)) return true;
+
+    // Header (append only; no roles/handlers altered)
+    var wrap = document.createElement('div');
+    wrap.className = 'tab';
+    wrap.setAttribute('data-medex', '1');
+    wrap.setAttribute('data-medex-title', title.trim().toLowerCase());
+
+    var a = document.createElement('a');
+    a.className = 'tab-title';
+    a.textContent = title;
+    // unique id reference for href; harmless if theme ignores it
+    var id = 'medex-panel-' + Math.random().toString(36).slice(2,8);
+    a.href = '#' + id;
+
+    wrap.appendChild(a);
+    tabs.appendChild(wrap);
+
+    // Panel (append only; no inline display changes)
+    var panel = document.createElement('div');
+    panel.id = id;
+    panel.className = 'tab-content';
+    panel.setAttribute('data-medex', '1');
+    // Tag with title so responsive CSS can target it (NEW)
+    panel.setAttribute('data-medex-title', title.trim().toLowerCase());
+    panel.innerHTML = html;
+    panels.appendChild(panel);
+
+    return true;
+  }
+
+  function addTabsOnce(){
+    var pv = qs('.productView');
+    if (!pv) return false;
+
+    // Text-only renames; no class/attr/style changes
+    renameExistingLabels(pv);
+
+    var added = false;
+    for (var i=0;i<TABS.length;i++){
+      added = appendTab(pv, TABS[i].title, TABS[i].html) || added;
+    }
+    return added;
+  }
+
+  function injectFAQSchema(){
+    if (qs('#medex-faq-schema')) return;
+    if (!FAQ_QA || !FAQ_QA.length) return;
+
+    var faq = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": FAQ_QA.map(function(item){
+        return { "@type": "Question", "name": item.q, "acceptedAnswer": { "@type": "Answer", "text": item.a } };
+      })
+    };
+
+    try {
+      var s = document.createElement('script');
+      s.type = 'application/ld+json';
+      s.id = 'medex-faq-schema';
+      s.text = JSON.stringify(faq);
+      document.head.appendChild(s);
+    } catch(e){}
+  }
+
+  function run(){
+    var ok = addTabsOnce();
+    injectFAQSchema();
+    if (ok) return;
+
+    // light retry without touching existing nodes
+    var tries = 25, iv = setInterval(function(){
+      var added = addTabsOnce();
+      injectFAQSchema();
+      if (added || --tries <= 0) clearInterval(iv);
+    }, 120);
+  }
+
+  if (document.readyState !== 'loading') run();
+  else document.addEventListener('DOMContentLoaded', run);
+  window.addEventListener('load', run);
+
+  // Observe SPA/instant-load; only append our tabs if missing
+  try {
+    var ticking = false;
+    new MutationObserver(function(){
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(function(){
+        ticking = false;
+        var pv = qs('.productView');
+        if (!pv) return;
+        var missing = TABS.some(function(t){ return !hasOurTab(pv, t.title); });
+        if (missing) addTabsOnce();
+        injectFAQSchema();
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  } catch(e){}
+})();
+</script>
+
+<script>
+(function(){
+  if (document.getElementById('medex-tabs-active-css')) return;
+  var css = `
+  /* --- PDP Tabs: Active state + inviting hover (non-intrusive) --- */
+  .productView .tabs { position: relative; }
+
+  /* Base tab look */
+  .productView .tabs .tab .tab-title {
+    display: inline-block;
+    position: relative;
+    padding: .6rem .9rem;
+    border-radius: 8px;
+    line-height: 1.2;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+    text-decoration: none !important;
+  }
+
+  /* Invite interaction on hover/focus */
+  .productView .tabs .tab .tab-title:hover,
+  .productView .tabs .tab .tab-title:focus {
+    background: rgba(0,119,181,.08); /* brand blue tint */
+    box-shadow: 0 1px 0 rgba(0,0,0,.04);
+  }
+
+  /* Active states: try common theme patterns without changing logic */
+  .productView .tabs .tab.is-active .tab-title,
+  .productView .tabs .tab.active .tab-title,
+  .productView .tabs .tab .tab-title[aria-selected="true"],
+  .productView .tabs .tab .tab-title[aria-current="true"],
+  .productView .tabs .tab .tab-title[aria-expanded="true"] {
+    background: rgba(0,119,181,.12);
+    color: #00334B;               /* brand dark */
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+
+  /* Active underline indicator */
+  .productView .tabs .tab.is-active .tab-title::after,
+  .productView .tabs .tab.active .tab-title::after,
+  .productView .tabs .tab .tab-title[aria-selected="true"]::after,
+  .productView .tabs .tab .tab-title[aria-current="true"]::after,
+  .productView .tabs .tab .tab-title[aria-expanded="true"]::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: -6px;
+    height: 3px;
+    border-radius: 3px;
+    background: #0077B5;          /* brand blue */
+    transform: translateY(0);
+  }
+
+  /* Gentle nudge for non-active tabs (slight lift on hover) */
+  .productView .tabs .tab:not(.is-active):not(.active) .tab-title:hover,
+  .productView .tabs .tab .tab-title:not([aria-selected="true"]):hover {
+    transform: translateY(-1px);
+  }
+
+  /* Keep layout tidy if theme uses tight rows */
+  @media (max-width: 800px) {
+    .productView .tabs .tab .tab-title { border-radius: 6px; }
+  }
+  `;
+  var s = document.createElement('style');
+  s.id = 'medex-tabs-active-css';
+  s.textContent = css;
+  document.head.appendChild(s);
+})();
+</script>
