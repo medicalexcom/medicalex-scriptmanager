@@ -1,0 +1,24 @@
+<script>
+(function($) {
+    function debounce(n,t,u){var e;return function(){var i=this,o=arguments,a=u&&!e;clearTimeout(e),e=setTimeout(function(){e=null,u||n.apply(i,o)},t),a&&n.apply(i,o)}}
+    function main() {
+        var els = document.querySelectorAll('.form-label.optimizedCheckout-form-label:first-child:not(._addedAsterisk)');
+        for (var i = 0; i < els.length; i++) {
+            var el = els[i];
+            el.classList.add('_addedAsterisk');
+            if (!el.querySelector('.optimizedCheckout-contentSecondary')) {
+                var span = document.createElement('span');
+                span.className = '_required';
+                span.innerHTML = '*';
+                span.title = 'Required';
+                el.appendChild(span);
+            }
+        }
+    }
+    main();
+    (new MutationObserver(debounce(main, 300))).observe(document.body, { childList: true, subtree: true });
+    var style = document.createElement('style');
+    style.innerHTML = '.form-label ._required { margin-left: .25rem; color: red }';
+    document.head.appendChild(style);
+})();
+</script>
