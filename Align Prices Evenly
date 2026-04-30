@@ -1,0 +1,12 @@
+<script>
+(function() {
+var style = document.createElement('style');
+style.innerHTML = ''
++ '.card { display: grid; grid-template-columns: 100%; grid-template-rows: min-content auto }'
++ '.card-body { display: grid; grid-template-rows: auto min-content min-content min-content; }'
++ '.card-title { grid-row: 1 / 2; }'
++ '.card-text--brand { grid-row: 2 / 3; }'
++ '.card-text--price { grid-row: 3 / 4; }';
+document.head.appendChild(style);
+})();
+</script>
