@@ -1,0 +1,202 @@
+<script>
+/*!
+ * MEDEX Quick Finder - Dial + Strict One-Line Chips (FINAL JS, font-safe)
+ * - Matches current HTML/CSS (Inter 600, --chip-font: 0.95rem, min-height:38px on chips)
+ * - Dial: center active; neighbors smaller; keyboard support; wrap-around
+ * - Chips: ALWAYS one line (no wrap), equal elastic widths, ellipsis
+ *          Auto-shrink font/pad only if needed (floors: 12px font / 8px pad-x)
+ * - Stable panel min-height across category swaps
+ * - New: re-enforce sizing once fonts are ready to prevent initial layout jump
+ */
+(function(){
+  var isHome = location.pathname === '/' || location.pathname === '/index.php';
+  if (!isHome) return;
+  if (window.MEDEX_QF_INIT) return; window.MEDEX_QF_INIT = true;
+
+  // Shorthand
+  function qs(s,root){ return (root||document).querySelector(s); }
+  function qsa(s,root){ return Array.from((root||document).querySelectorAll(s)); }
+  function debounce(fn, wait){ var to=null; return function(){ clearTimeout(to); to=setTimeout(fn, wait); }; }
+
+  var viewport, track, tabs, panels, btnPrev, btnNext;
+  var index = 0;
+
+  function init(){
+    viewport = qs('.mqf-dial-viewport');
+    track    = qs('.mqf-dial-track');
+    tabs     = qsa('.mqf-dial-track .mqf-tab');
+    panels   = qsa('.mqf-panel[role="tabpanel"]');
+    btnPrev  = qs('.mqf-dial-prev');
+    btnNext  = qs('.mqf-dial-next');
+    if (!viewport || !track || !tabs.length || !panels.length || !btnPrev || !btnNext) return;
+
+    index = Math.max(0, tabs.findIndex(t => t.getAttribute('aria-selected') === 'true'));
+
+    // Events
+    tabs.forEach((t,i)=> t.addEventListener('click', ()=> setActive(i, true)));
+    btnNext.addEventListener('click', ()=> setActive(index + 1, true));
+    btnPrev.addEventListener('click', ()=> setActive(index - 1, true));
+    track.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowRight'){ e.preventDefault(); setActive(index + 1, true); }
+      else if (e.key === 'ArrowLeft'){ e.preventDefault(); setActive(index - 1, true); }
+      else if (e.key === 'Home'){ e.preventDefault(); setActive(0, true); }
+      else if (e.key === 'End'){ e.preventDefault(); setActive(tabs.length - 1, true); }
+      else if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); centerActive(); }
+    });
+
+    window.addEventListener('resize', debounce(onResize, 120));
+
+    updateDialClasses();
+    swapPanelVisibility();
+    enforceStrictOneLine(getActivePanel());
+    setPanelsMinHeight();
+    requestAnimationFrame(centerActive);
+
+    // Re-enforce after web fonts load (prevents initial jump)
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function(){
+        enforceStrictOneLine(getActivePanel());
+        setPanelsMinHeight();
+        centerActive();
+      });
+    }
+  }
+
+  function setActive(i, user){
+    var next = (i + tabs.length) % tabs.length;
+    if (next === index){ centerActive(); return; }
+    index = next;
+
+    tabs.forEach((t, idx) => {
+      var active = idx === index;
+      t.setAttribute('aria-selected', active ? 'true' : 'false');
+      t.tabIndex = active ? 0 : -1;
+    });
+
+    updateDialClasses();
+    swapPanelVisibility();
+    enforceStrictOneLine(getActivePanel());
+    setPanelsMinHeight();
+    centerActive();
+    if (user) tabs[index].focus({preventScroll:true});
+  }
+
+  function updateDialClasses(){
+    tabs.forEach(t => t.classList.remove('is-active','is-near'));
+    tabs.forEach((t, idx) => {
+      var d = Math.min(Math.abs(idx - index), Math.abs((idx + tabs.length) - index), Math.abs(idx - (index + tabs.length)));
+      if (d === 0) t.classList.add('is-active');
+      else if (d === 1) t.classList.add('is-near');
+    });
+  }
+
+  function swapPanelVisibility(){
+    panels.forEach((p, idx) => {
+      if (idx === index) p.removeAttribute('hidden');
+      else p.setAttribute('hidden', '');
+    });
+  }
+
+  function centerActive(){
+    var vpRect = viewport.getBoundingClientRect();
+    var vpCenter = vpRect.left + vpRect.width / 2;
+    var active = tabs[index];
+    var aRect = active.getBoundingClientRect();
+    var aCenter = aRect.left + aRect.width / 2;
+    var current = getCurrentTranslateX(track);
+    var delta = vpCenter - aCenter;
+    var next = current + delta;
+
+    // Clamp within content
+    var totalWidth = tabs.reduce((w,t)=> w + t.offsetWidth, 0) + (tabs.length - 1) * 10 + 12; // 10px gap + padding approx
+    var maxLeft = 0;
+    var maxRight = Math.max(0, totalWidth - viewport.clientWidth);
+    next = Math.max(-maxRight, Math.min(maxLeft, next));
+
+    track.style.transform = 'translateX(' + next.toFixed(1) + 'px)';
+  }
+
+  function getCurrentTranslateX(el){
+    var st = window.getComputedStyle(el);
+    var m = st.transform || st.webkitTransform;
+    if (!m || m === 'none') return 0;
+    try { return parseFloat(m.split(',')[4]) || 0; } catch(e){ return 0; }
+  }
+
+  // ---------- Strict one-line chips ----------
+  function getActivePanel(){
+    return panels.find(p => !p.hasAttribute('hidden')) || panels[0];
+  }
+
+  function setPanelsMinHeight(){
+    var container = qs('.mqf-panels');
+    if (!container) return;
+    var maxH = 0;
+    panels.forEach(p=>{
+      var wasHidden = p.hasAttribute('hidden');
+      if (wasHidden) p.removeAttribute('hidden');
+      var h = p.getBoundingClientRect().height;
+      if (wasHidden) p.setAttribute('hidden','');
+      if (h > maxH) maxH = h;
+    });
+    container.style.minHeight = Math.ceil(maxH) + 'px';
+  }
+
+  function enforceStrictOneLine(panel){
+    if (!panel) return;
+    var links = panel.querySelector('.mqf-links');
+    if (!links) return;
+    var chips = links.querySelectorAll('.mqf-chip');
+    var count = Math.max(1, chips.length);
+    links.style.setProperty('--chip-count', String(count));
+
+    // Reset to base (CSS handles equal widths/ellipsis)
+    var rootFont = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    var basePx = Math.round(rootFont * 0.95 * 100) / 100; // 0.95rem base from CSS
+    setChipVars(links, basePx, 14); // font px, pad-x px
+    links.style.flexWrap = 'nowrap';
+    chips.forEach(c => { c.style.flex = ''; c.style.whiteSpace = 'nowrap'; });
+
+    // Measure & shrink gently if necessary (floors: 12px font / 8px pad-x)
+    requestAnimationFrame(function(){
+      var first = chips[0];
+      if (!first) return;
+
+      var attempts = 0, maxAttempts = 14;
+      var fontPx = basePx, minFont = 12;
+      var padPx  = 14,     minPad  = 8;
+
+      function fitsOneRow(){
+        var rowH = Math.ceil(first.getBoundingClientRect().height) || 40;
+        var totalH = Math.ceil(links.getBoundingClientRect().height);
+        return totalH <= rowH * 1.6;
+      }
+
+      function step(){
+        if (fitsOneRow() || attempts >= maxAttempts) return;
+        attempts++;
+        if (fontPx > minFont) { fontPx -= 0.6; }
+        else if (padPx > minPad) { padPx -= 1; }
+        else { return; } // hit floors; still one line with ellipsis
+        setChipVars(links, fontPx, padPx);
+        requestAnimationFrame(step);
+      }
+      step();
+    });
+  }
+
+  function setChipVars(links, fontPx, padPx){
+    links.style.setProperty('--chip-font', fontPx + 'px');
+    links.style.setProperty('--chip-pad-x', padPx + 'px');
+  }
+
+  function onResize(){
+    centerActive();
+    enforceStrictOneLine(getActivePanel());
+    setPanelsMinHeight();
+  }
+
+  if (document.readyState === 'complete') init();
+  else window.addEventListener('load', init);
+})();
+</script>
