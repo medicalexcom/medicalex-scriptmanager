@@ -1,0 +1,13 @@
+<script>
+    (function($) {
+        function main() {
+            var $img = $('.emthemesModez-categoryPage-mainImage img[srcset]');
+            if ($img.length > 0) {
+                $img.attr('src', $img.attr('src').replace(/stencil\/[^\/]+\//, 'stencil/original/'))
+                    .attr('srcset', '')
+            }
+        }
+        $(document).ready(main);
+        $('body').on('loaded.instantload', main);
+    })(window.jQuerySupermarket || window.jQuery);
+</script>
