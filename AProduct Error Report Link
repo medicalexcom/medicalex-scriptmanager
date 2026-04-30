@@ -1,0 +1,206 @@
+<script>
+(function () {
+  if (window.MEDEX_ERROR_POPUP_V10) return;
+  window.MEDEX_ERROR_POPUP_V10 = true;
+
+  const FORM_ENDPOINT = "https://formsubmit.co/ajax/info@medicalex.com";
+  const TARGET_SELECTORS = [
+    '.productView-info [data-tabs]',
+    '.productView-info .tabs',
+    '.productView-description',
+    '.productView-details',
+    '.productView'
+  ];
+
+  /* ============== Create UI elements ============== */
+  const btn = document.createElement("div");
+  btn.id = "report-error-btn";
+  btn.textContent = "See an error on this page? Let us know.";
+  btn.style.cssText = `
+    margin-top:25px;text-align:center;font-size:14px;color:#0077B5;
+    text-decoration:underline;cursor:pointer;border-top:1px solid #e0e0e0;padding-top:12px;
+    transition:color 0.2s ease;
+  `;
+
+  const popup = document.createElement("div");
+  popup.id = "report-error-popup";
+  popup.style.cssText = `
+    display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;align-items:center;opacity:0;transition:opacity .25s ease;
+  `;
+  popup.innerHTML = `
+    <div style="background:white;padding:25px;max-width:420px;width:90%;
+                border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);position:relative;overflow:hidden;">
+      <h3 style="margin-top:0;color:#00334B;">Report an Error</h3>
+      <p style="font-size:14px;color:#333;margin-bottom:10px;">
+        Product page:<br><span id="report-error-url" style="font-size:13px;color:#0077B5;"></span>
+      </p>
+      <textarea id="report-error-text" placeholder="Describe the issue..." 
+        style="width:100%;height:80px;border:1px solid #ccc;border-radius:5px;padding:8px;"></textarea>
+      <div style="margin-top:15px;text-align:right;">
+        <button id="report-error-cancel"
+          style="background:#ccc;color:#333;border:none;padding:8px 14px;border-radius:4px;margin-right:8px;">Cancel</button>
+        <button id="report-error-send"
+          style="background:#0077B5;color:#fff;border:none;padding:8px 14px;border-radius:4px;">Send</button>
+      </div>
+      <div id="report-error-thankyou" style="display:none;position:absolute;inset:0;background:#f7fff7;display:flex;flex-direction:column;justify-content:center;align-items:center;animation:fadeIn .4s ease;">
+        <div style="font-size:50px;color:#00a859;line-height:1;">&#10003;</div>
+        <p style="font-size:18px;color:#00334B;font-weight:600;margin-top:10px;">Thank you!<br>Your report has been sent.</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  const textArea = popup.querySelector("#report-error-text");
+  const urlEl = popup.querySelector("#report-error-url");
+  const thankyouEl = popup.querySelector("#report-error-thankyou");
+
+  /* ============== Style Enhancements ============== */
+  const style = document.createElement("style");
+  style.textContent = `
+    #report-error-btn:hover { color:#CC0000 !important; }
+    @keyframes fadeIn { from { opacity:0; transform:scale(.95);} to { opacity:1; transform:scale(1);} }
+  `;
+  document.head.appendChild(style);
+
+  /* ============== Helper Functions ============== */
+  function findTarget() {
+    for (const sel of TARGET_SELECTORS) {
+      const el = document.querySelector(sel);
+      if (el) return el;
+    }
+    return null;
+  }
+
+  function updateUrlDisplay() {
+    if (urlEl) urlEl.textContent = window.location.href;
+  }
+
+  async function waitForTarget(timeoutMs = 15000, intervalMs = 150) {
+    const start = Date.now();
+    return new Promise(resolve => {
+      (function loop() {
+        const t = findTarget();
+        if (t) return resolve(t);
+        if (Date.now() - start >= timeoutMs) return resolve(null);
+        setTimeout(loop, intervalMs);
+      })();
+    });
+  }
+
+  let ensuring = false;
+  async function ensureButton() {
+    if (ensuring) return;
+    ensuring = true;
+    const target = await waitForTarget();
+    if (target && (!btn.isConnected || btn.parentNode !== target)) {
+      target.appendChild(btn);
+      updateUrlDisplay();
+    }
+    ensuring = false;
+  }
+
+  function pollEnsure(maxMs = 6000, every = 250) {
+    const end = Date.now() + maxMs;
+    (function tick() {
+      if (!btn.isConnected) ensureButton();
+      if (btn.isConnected || Date.now() > end) return;
+      setTimeout(tick, every);
+    })();
+  }
+
+  /* ============== Popup Controls ============== */
+  function openPopup() {
+    popup.style.display = "flex";
+    requestAnimationFrame(() => popup.style.opacity = "1");
+    document.body.style.overflow = "hidden";
+    thankyouEl.style.display = "none";
+    textArea.value = "";
+    updateUrlDisplay();
+  }
+
+  function closePopup() {
+    popup.style.opacity = "0";
+    document.body.style.overflow = "";
+    setTimeout(() => popup.style.display = "none", 250);
+  }
+
+  /* ============== Events ============== */
+  btn.addEventListener("click", openPopup);
+  popup.addEventListener("click", (e) => { if (e.target === popup) closePopup(); });
+  popup.querySelector("#report-error-cancel").addEventListener("click", closePopup);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && popup.style.display === "flex") closePopup(); });
+
+  popup.querySelector("#report-error-send").addEventListener("click", async () => {
+    const details = textArea.value.trim();
+    if (!details) return alert("Please describe the issue before sending.");
+
+    const productUrl = window.location.href;
+    const sendBtn = popup.querySelector("#report-error-send");
+    sendBtn.disabled = true; sendBtn.textContent = "Sending...";
+
+    try {
+      const res = await fetch(FORM_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: "MedicalEx Product Page Error Report",
+          Product_URL: productUrl,
+          Message: details,
+          page_title: document.title
+        })
+      });
+
+      if (res.ok) {
+        thankyouEl.style.display = "flex"; // Show dramatic thank you
+        sendBtn.textContent = "Send";
+        sendBtn.disabled = false;
+        setTimeout(closePopup, 2200);
+      } else throw new Error("Network error");
+    } catch (e) {
+      alert("⚠️ Sorry, something went wrong. Please try again later.");
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Send";
+    }
+  });
+
+  /* ============== AJAX-safe Re-insertion Logic ============== */
+  ensureButton();
+  pollEnsure(7000, 250);
+
+  const moRoot = document.querySelector('#main-content') || document.querySelector('main') || document.body;
+  let moTimer = null;
+  new MutationObserver((mutations) => {
+    let relevant = false;
+    for (const m of mutations) {
+      for (const n of m.addedNodes) {
+        if (!(n instanceof HTMLElement)) continue;
+        if (
+          n.matches?.('.productView, .productView-description, .productView-details, [data-tabs], .tabs') ||
+          n.querySelector?.('.productView, .productView-description, .productView-details, [data-tabs], .tabs')
+        ) { relevant = true; break; }
+      }
+      if (relevant) break;
+    }
+    if (!relevant) return;
+    clearTimeout(moTimer);
+    moTimer = setTimeout(() => ensureButton(), 100);
+  }).observe(moRoot, { childList: true, subtree: true });
+
+  (function hookHistory() {
+    const push = history.pushState, replace = history.replaceState;
+    const fire = () => window.dispatchEvent(new Event('medex:locationchange'));
+    history.pushState = function () { const r = push.apply(this, arguments); fire(); return r; };
+    history.replaceState = function () { const r = replace.apply(this, arguments); fire(); return r; };
+    window.addEventListener('popstate', fire);
+  })();
+
+  window.addEventListener('medex:locationchange', () => {
+    ensureButton(); pollEnsure(8000, 250);
+  });
+
+  window.addEventListener('pageshow', () => ensureButton());
+})();
+</script>
