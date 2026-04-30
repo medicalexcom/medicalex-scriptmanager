@@ -1,0 +1,167 @@
+<script>
+(function(){
+  if (window.__MEDX_SUBCAT_PILLS_END_V4__) return;
+  window.__MEDX_SUBCAT_PILLS_END_V4__ = true;
+
+  var CFG = {
+    minCellPx: 180,
+    minCellPxMobile: 140,
+    pillHeight: 44,
+    gap: 10
+  };
+
+  // ---------- CSS (scoped) ----------
+  var css = `
+    :root{
+      --medx-text:#ffffff;
+      --medx-blue:#0077B5;
+      --medx-blue-hover:#006aa1;
+      --medx-blue-press:#005a87;
+      --medx-pill-h:${CFG.pillHeight}px;
+      --medx-gap:${CFG.gap}px;
+      --medx-radius:12px;
+      --medx-ring:rgba(0,119,181,0.35);
+    }
+
+    /* Grid ONLY on explicitly scoped subcategory lists (never the header/menu) */
+    .medx-subcat-scope{
+      display:grid !important;
+      grid-template-columns:repeat(auto-fit, minmax(${CFG.minCellPx}px, 1fr)) !important;
+      align-items:stretch !important;
+      gap:var(--medx-gap) !important;
+      margin:14px 0 20px 0 !important;
+    }
+
+    /* Pill appearance ONLY on links we tag */
+    a.medx-pill{
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:flex-start !important;
+      height:var(--medx-pill-h) !important;
+      min-height:var(--medx-pill-h) !important;
+      padding:0 18px !important;
+      width:100% !important;
+
+      border-radius:var(--medx-radius) !important;
+      border:1px solid transparent !important;
+      background:var(--medx-blue) !important;
+      color:var(--medx-text) !important;
+
+      font-size:.95rem !important;
+      font-weight:600 !important;
+      line-height:1 !important;
+      text-decoration:none !important;
+
+      white-space:nowrap !important;
+      overflow:hidden !important;
+      text-overflow:ellipsis !important;
+
+      box-shadow:0 1px 4px rgba(0,0,0,0.12) !important;
+      transition:transform .12s ease, background .15s ease, box-shadow .15s ease !important;
+      will-change:transform !important;
+      outline:none !important;
+    }
+    a.medx-pill:hover{ background:var(--medx-blue-hover) !important; transform:translateY(-1px) scale(1.01) !important; box-shadow:0 6px 18px rgba(0,0,0,0.16) !important; }
+    a.medx-pill:active{ background:var(--medx-blue-press) !important; transform:translateY(0) scale(.99) !important; }
+    a.medx-pill:focus-visible{ box-shadow:0 0 0 3px var(--medx-ring), 0 1px 4px rgba(0,0,0,0.12) !important; }
+    a.medx-pill[aria-current="page"]{ background:var(--medx-blue-hover) !important; }
+
+    @media (max-width:640px){
+      .medx-subcat-scope{
+        grid-template-columns:repeat(auto-fit, minmax(${CFG.minCellPxMobile}px, 1fr)) !important;
+      }
+      a.medx-pill{ padding:0 14px !important; font-size:.92rem !important; }
+    }
+  `;
+  var style = document.createElement('style');
+  style.id = 'medx-subcat-pills-end-css-v4';
+  style.appendChild(document.createTextNode(css));
+  document.head.appendChild(style);
+
+  // ---------- JS ----------
+  // Anything inside these is considered "menu/header" and must be ignored.
+  var MENU_GUARDS = [
+    '.header', '#header',
+    '.navPages', '.navPages-container', '.navPages-list',
+    '.navPage-subMenu', '.navPages-quickSearch', '.navPages-item'
+  ].join(',');
+
+  // Only allow scoping on these subcategory list wrappers (Supermarket variants)
+  var CONTAINER_WHITELIST = [
+    '.papaSupermarket-subcategories-list',   // common subcategory grid
+    '.papaSupermarket-subcategories .papaSupermarket-subcategories-list', // nested
+    '.papaSupermarket-subcategories'         // broader block if list class missing
+  ].join(',');
+
+  function isInMenu(node){
+    return !!(node && node.closest && node.closest(MENU_GUARDS));
+  }
+
+  function toPath(u){
+    try { return (new URL(u, location.origin)).pathname.replace(/\/+$/,''); }
+    catch(e){ return ''; }
+  }
+
+  function enhance(root){
+    var did = false;
+
+    // Find native subcategory anchors
+    var anchors = root.querySelectorAll('a.papaSupermarket-subcategories-name');
+    anchors.forEach(function(a){
+      // Skip anything in header/nav menus
+      if (isInMenu(a)) return;
+
+      // Tag as pill
+      if (!a.classList.contains('medx-pill')){
+        a.classList.add('medx-pill');
+        did = true;
+      }
+
+      // Title tooltip
+      if (!a.title) a.title = (a.textContent || '').trim();
+
+      // Active state
+      var here = toPath(location.href);
+      var p = toPath(a.href);
+      if (p && p === here) a.setAttribute('aria-current','page');
+
+      // Scope the nearest approved container only (never generic nav classes)
+      var container = a.closest(CONTAINER_WHITELIST);
+      if (container && !isInMenu(container) && !container.classList.contains('medx-subcat-scope')){
+        container.classList.add('medx-subcat-scope');
+        did = true;
+      }
+    });
+
+    return did;
+  }
+
+  function boot(){ enhance(document); }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else { boot(); }
+  // Small delayed pass for async content
+  setTimeout(boot, 300);
+  window.addEventListener('pageshow', boot);
+
+  // Observe for dynamic inserts (but ignore mutations inside the header/nav)
+  var mo = new MutationObserver(function(muts){
+    var run = false;
+    for (var i=0;i<muts.length;i++){
+      var m = muts[i];
+      if (!m.addedNodes || !m.addedNodes.length) continue;
+      for (var j=0;j<m.addedNodes.length;j++){
+        var n = m.addedNodes[j];
+        if (n.nodeType !== 1) continue;
+        if (isInMenu(n)) continue; // ignore header/nav changes entirely
+        if (n.matches && (n.matches(CONTAINER_WHITELIST) || n.matches('a.papaSupermarket-subcategories-name'))) { run = true; break; }
+        if (n.querySelector && (n.querySelector(CONTAINER_WHITELIST) || n.querySelector('a.papaSupermarket-subcategories-name'))) { run = true; break; }
+      }
+      if (run) break;
+    }
+    if (run) enhance(document);
+  });
+  mo.observe(document.documentElement, { childList:true, subtree:true });
+})();
+</script>
