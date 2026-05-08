@@ -1,0 +1,620 @@
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://www.medicalex.com/#website",
+    "name": "MedicalEx USA – Buy Medical Equipment & Supplies Online",
+    "alternateName": "MedicalEx",
+    "url": "https://www.medicalex.com",
+    "description": "MedicalEx is an online store for high-quality medical equipment and supplies, serving hospitals, clinics, and home healthcare needs.",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.medicalex.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+    },
+    "sameAs": [
+        "https://www.facebook.com/MedicalExUSA",
+        "https://twitter.com/MedicalExUSA",
+        "https://www.instagram.com/MedicalExUSA",
+        "https://www.linkedin.com/company/medicalExUSA",
+        "https://www.youtube.com/@medicalExUSA",
+        "https://www.google.com/maps?cid=17990810576624492945",
+        "https://en.wikipedia.org/wiki/Medical_equipment",
+        "https://www.fda.gov/medical-devices"
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "MedicalEx Categories",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Diabetic Supplies",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Monitoring Devices",
+            "url": "https://www.medicalex.com/glucose-monitoring-devices/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Testing Supplies",
+            "url": "https://www.medicalex.com/blood-glucose-testing/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Insulin Management",
+            "url": "https://www.medicalex.com/insulin-management/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Diabetic Foot Care",
+            "url": "https://www.medicalex.com/diabetic-foot-care/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Insulin Sharps Disposal",
+            "url": "https://www.medicalex.com/insulin-sharps-disposal/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Carrying Cases",
+            "url": "https://www.medicalex.com/carrying-cases/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "name": "Control Solution",
+            "url": "https://www.medicalex.com/control-solution/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "name": "Skin Prep & Skin Care",
+            "url": "https://www.medicalex.com/skin-prep-skin-care/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "name": "Diabetes Nutrition",
+            "url": "https://www.medicalex.com/diabetes-nutrition/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Urinary Supplies",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Drainage Bags",
+            "url": "https://www.medicalex.com/drainage-bags/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Urinals",
+            "url": "https://www.medicalex.com/urinals/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Irrigation Trays",
+            "url": "https://www.medicalex.com/irrigation-trays/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Leg Bags",
+            "url": "https://www.medicalex.com/leg-bags/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Lubricants",
+            "url": "https://www.medicalex.com/lubricants/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Penile Clamps",
+            "url": "https://www.medicalex.com/penile-clamps/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "name": "StatLock Securement",
+            "url": "https://www.medicalex.com/statlock-securement/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "name": "Straps, Holders & Anchors",
+            "url": "https://www.medicalex.com/straps-holders-anchors/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "name": "Tubing",
+            "url": "https://www.medicalex.com/tubing/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 10,
+            "name": "Urinary Misc",
+            "url": "https://www.medicalex.com/urinary-misc/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 11,
+            "name": "Catheters",
+            "url": "https://www.medicalex.com/catheters/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Personal Care",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Breast Pumps",
+            "url": "https://www.medicalex.com/breast-pumps/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Skin Care",
+            "url": "https://www.medicalex.com/skin-care/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Foot Care",
+            "url": "https://www.medicalex.com/foot-care/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "Muscle Pain Relief",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Massage Therapy",
+            "url": "https://www.medicalex.com/massage-therapy/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "name": "Daily Living Aids",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Around the House",
+            "url": "https://www.medicalex.com/around-the-house/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Activity Aids",
+            "url": "https://www.medicalex.com/activity-aids/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 6,
+      "name": "Orthopedic Care",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Abdominal Binders",
+            "url": "https://www.medicalex.com/abdominal-binders/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Arm & Elbow Braces",
+            "url": "https://www.medicalex.com/arm-elbow-braces/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Arthritis Gloves",
+            "url": "https://www.medicalex.com/arthritis-gloves/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Foot & Ankle Braces",
+            "url": "https://www.medicalex.com/foot-ankle-braces/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Hand & Wrist Braces",
+            "url": "https://www.medicalex.com/hand-wrist-braces/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Shoulder & Neck Braces",
+            "url": "https://www.medicalex.com/shoulder-neck-braces/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "name": "Thigh & Knee Braces",
+            "url": "https://www.medicalex.com/thigh-knee-braces/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "name": "Waist & Back Braces",
+            "url": "https://www.medicalex.com/waist-back-braces/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 7,
+      "name": "Ostomy",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "1-Piece Ostomy Bags",
+            "url": "https://www.medicalex.com/1-piece-ostomy-bags/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "2-Piece Ostomy Bags",
+            "url": "https://www.medicalex.com/2-piece-ostomy-bags/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Ostomy Skin Care",
+            "url": "https://www.medicalex.com/ostomy-skin-care/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 8,
+      "name": "Wound Care",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Advanced Wound Care",
+            "url": "https://www.medicalex.com/advanced-wound-care/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Wound Care Prep",
+            "url": "https://www.medicalex.com/wound-care-prep/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Wound Dressings",
+            "url": "https://www.medicalex.com/wound-dressings/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "First Aid",
+            "url": "https://www.medicalex.com/first-aid/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 9,
+      "name": "Incontinence",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Adult Diapers",
+            "url": "https://www.medicalex.com/adult-diapers/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Incontinence Care",
+            "url": "https://www.medicalex.com/incontinence-care/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Just for Men",
+            "url": "https://www.medicalex.com/just-for-men/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Just for Women",
+            "url": "https://www.medicalex.com/just-for-women/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Pads, Guards & Liners",
+            "url": "https://www.medicalex.com/pads-guards-liners/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Underpads & Bed Pads",
+            "url": "https://www.medicalex.com/underpads-bed-pads/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 10,
+      "name": "Medical Furniture",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Hospital Beds",
+            "url": "https://www.medicalex.com/hospital-beds/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Mattresses",
+            "url": "https://www.medicalex.com/mattresses/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Geriatric Furniture",
+            "url": "https://www.medicalex.com/geriatric-furniture/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Seating Solutions",
+            "url": "https://www.medicalex.com/seating-solutions/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Patient Room Equipment",
+            "url": "https://www.medicalex.com/patient-room-equipment/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 11,
+      "name": "Patient Care",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Hospital Supplies",
+            "url": "https://www.medicalex.com/hospital-supplies/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Surgical Instruments",
+            "url": "https://www.medicalex.com/surgical-instruments/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Syringes and Needles",
+            "url": "https://www.medicalex.com/syringes-needles/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Enteral Feeding",
+            "url": "https://www.medicalex.com/enteral-feeding/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Patient Safety",
+            "url": "https://www.medicalex.com/patient-safety/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Hospital Furniture",
+            "url": "https://www.medicalex.com/hospital-furniture/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 12,
+      "name": "Diagnostic Products",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home Diagnostics",
+            "url": "https://www.medicalex.com/home-diagnostics/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Professional Use",
+            "url": "https://www.medicalex.com/professional-use/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Scales",
+            "url": "https://www.medicalex.com/scales/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 13,
+      "name": "Bathroom Safety",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Shower Chairs & Stools",
+            "url": "https://www.medicalex.com/shower-chairs-stools/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Bathroom Benches",
+            "url": "https://www.medicalex.com/bathroom-benches/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Shower Grab Bars",
+            "url": "https://www.medicalex.com/shower-grab-bars/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Toilet Safety",
+            "url": "https://www.medicalex.com/toilet-safety/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Transfer Benches",
+            "url": "https://www.medicalex.com/transfer-benches/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Bath Lifts",
+            "url": "https://www.medicalex.com/bath-lifts/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "ListItem",
+      "position": 14,
+      "name": "Mobility Aids",
+      "item": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Walkers",
+            "url": "https://www.medicalex.com/walkers/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Wheelchairs",
+            "url": "https://www.medicalex.com/wheelchairs/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Medical Canes",
+            "url": "https://www.medicalex.com/medical-canes/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Crutches",
+            "url": "https://www.medicalex.com/crutches/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Patient Lifts",
+            "url": "https://www.medicalex.com/patient-lifts/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Mobility Scooters",
+            "url": "https://www.medicalex.com/mobility-scooters/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "name": "Patient Transfer Boards",
+            "url": "https://www.medicalex.com/patient-transfer-boards/"
+          }
+        ]
+      }
+    }
+  ]
+}
+</script>
