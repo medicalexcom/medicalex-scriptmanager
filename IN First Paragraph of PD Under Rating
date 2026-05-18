@@ -1,0 +1,49 @@
+<script>
+    (function($) {
+        function load($scope) {
+            // Select the first paragraph and the first unordered list
+            var $paragraph = $('.productView-description-tabContent > p').first();
+            var $bulletPoints = $('.productView-description-tabContent > ul').first();
+            
+            // Create a container for the description
+            var $container = $('<div class="productView-sortDescription"></div>');
+
+            // If both paragraph and bullet points exist, move both
+            if ($paragraph.length > 0 && $bulletPoints.length > 0) {
+                $container.append($paragraph).append($bulletPoints);
+            } 
+            // If only the bullet points exist, move them
+            else if ($bulletPoints.length > 0) {
+                $container.append($bulletPoints);
+            } 
+            // If only the paragraph exists, move it
+            else if ($paragraph.length > 0) {
+                $container.append($paragraph);
+            }
+
+            // Insert content after the rating
+            if ($container.children().length > 0) {
+                $container.insertAfter($('.productView-rating', $scope));
+            }
+
+            // Move the product info to below the product options
+            $('.productView-info', $scope).insertAfter($('.productView-options', $scope));
+        }
+
+        $(document).ready(function() {
+            if ($('body').hasClass('papaSupermarket-pageType--product')) {
+                load();
+            }
+        });
+
+        $('body').on('loaded.instantload', function() {
+            if ($('body').hasClass('papaSupermarket-pageType--product')) {
+                load();
+            }
+        });
+
+        $('body').on('loaded.quickview', function(product) {
+            load(product.$scope);
+        });
+    })(window.jQuerySupermarket || window.jQuery);
+</script>
